@@ -17,6 +17,7 @@ export type GameEvent =
   | { type: 'answer-revealed'; data: PusherAnswerRevealed }
   | { type: 'leaderboard'; data: PusherLeaderboard }
   | { type: 'winner-reveal'; data: PusherWinnerReveal }
+  | { type: 'answer-count'; data: { questionIndex: number; answered: number; total: number } }
   | { type: 'game-opened' };
 
 export function useGameState(onEvent?: (event: GameEvent) => void) {
@@ -74,6 +75,10 @@ export function useGameState(onEvent?: (event: GameEvent) => void) {
     channel.bind('game:winner-reveal', (data: PusherWinnerReveal) => {
       setGameState((prev) => prev ? { ...prev, status: 'winner-reveal', winnerRevealPhase: data.phase } : prev);
       onEventRef.current?.({ type: 'winner-reveal', data });
+    });
+
+    channel.bind('game:answer-count', (data: { questionIndex: number; answered: number; total: number }) => {
+      onEventRef.current?.({ type: 'answer-count', data });
     });
 
     return () => {

@@ -13,7 +13,7 @@ import { AdminCommand, GameState, ScoreEntry, WinnerRevealPhase } from '@/lib/ty
 
 function buildLeaderboard(players: Awaited<ReturnType<typeof getAllPlayers>>): ScoreEntry[] {
   return players
-    .map((p) => ({ playerId: p.id, name: p.name, totalScore: p.totalScore, rank: 0 }))
+    .map((p) => ({ playerId: p.id, name: p.name, totalScore: Number(p.totalScore) || 0, rank: 0 }))
     .sort((a, b) => b.totalScore - a.totalScore)
     .map((entry, i) => ({ ...entry, rank: i + 1 }));
 }
@@ -74,11 +74,12 @@ export async function POST(req: NextRequest) {
       const answers = await getAnswersForQuestion(currentQuestionIndex);
       const players = await getAllPlayers();
 
-      // Update player total scores
+      // Update player total scores — use Number() to guard against Redis string coercion
       for (const player of players) {
         const answer = answers[player.id];
+        player.totalScore = Number(player.totalScore) || 0;
         if (answer) {
-          player.totalScore += answer.score;
+          player.totalScore += Number(answer.score) || 0;
           player.answers[currentQuestionIndex] = answer;
         }
       }

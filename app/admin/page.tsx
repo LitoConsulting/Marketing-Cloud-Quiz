@@ -97,13 +97,23 @@ function AdminPanel() {
 
   useEffect(() => {
     const pusher = getPusherClient();
-    const channel = pusher.subscribe('quiz-admin');
-    channel.bind('admin:answer-update', (data: PusherAnswerUpdate) => {
+    const adminCh = pusher.subscribe('quiz-admin');
+    const gameCh = pusher.subscribe('quiz-game');
+
+    adminCh.bind('admin:answer-update', (data: PusherAnswerUpdate) => {
       setAnswerUpdate(data);
     });
+
+    // Reset answer count when a new question starts
+    gameCh.bind('game:question', () => {
+      setAnswerUpdate(null);
+    });
+
     return () => {
-      channel.unbind_all();
+      adminCh.unbind_all();
+      gameCh.unbind_all();
       pusher.unsubscribe('quiz-admin');
+      pusher.unsubscribe('quiz-game');
     };
   }, []);
 

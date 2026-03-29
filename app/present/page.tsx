@@ -184,7 +184,7 @@ function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
         {data.trigger === 'mid' ? 'Halfway Leaderboard' : 'Final Scores'}
       </h2>
       <p className="text-gray-400 mb-10">
-        {data.trigger === 'mid' ? '5 questions to go!' : 'And the winner is...'}
+        {data.trigger === 'mid' ? '5 questions to go!' : 'Get ready for the podium reveal!'}
       </p>
       <div className="w-full max-w-xl space-y-3">
         {top.map((entry, i) => (
@@ -347,6 +347,9 @@ export default function PresentPage() {
         setCurrentQuestion(event.data);
         setAnsweredCount(0);
         setView('question');
+        break;
+      case 'answer-count':
+        setAnsweredCount(event.data.answered);
         break;
       case 'answer-revealed':
         setRevealData(event.data);

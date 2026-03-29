@@ -134,21 +134,13 @@ function AnswerReveal({
 
 // ─── Leaderboard (player view) ──────────────────────────────────────────────────
 
-function PlayerLeaderboard({ scores, playerName }: { scores: ScoreEntry[]; playerName: string }) {
-  const myEntry = scores.find((s) => s.name === playerName);
+function PlayerLeaderboard() {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 text-center">
-      <div className="text-4xl mb-3">🏆</div>
-      <h2 className="text-white text-2xl font-bold mb-1">Leaderboard</h2>
-      <p className="text-gray-400 text-sm mb-6">Halfway there!</p>
-      {myEntry && (
-        <div className="bg-violet-900/50 border border-violet-700 rounded-2xl px-8 py-4 mb-6">
-          <div className="text-violet-300 text-sm mb-1">Your rank</div>
-          <div className="text-white text-4xl font-black">#{myEntry.rank}</div>
-          <div className="text-violet-300 text-sm mt-1">{myEntry.totalScore} pts</div>
-        </div>
-      )}
-      <p className="text-gray-500 text-sm">Waiting for host...</p>
+      <div className="text-5xl mb-5">🏆</div>
+      <h2 className="text-white text-2xl font-bold mb-2">Halfway there!</h2>
+      <p className="text-gray-400 text-sm mb-6">Check the big screen for the leaderboard</p>
+      <p className="text-gray-600 text-sm">Waiting for host...</p>
     </div>
   );
 }
@@ -262,8 +254,8 @@ export default function PlayPage() {
   if (view === 'revealing' && revealData) {
     return <AnswerReveal revealData={revealData} selectedAnswer={selectedAnswer} />;
   }
-  if (view === 'leaderboard' && leaderboardData) {
-    return <PlayerLeaderboard scores={leaderboardData.scores} playerName={playerName} />;
+  if (view === 'leaderboard') {
+    return <PlayerLeaderboard />;
   }
   if (view === 'winner') {
     return <WinnerWait />;

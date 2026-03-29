@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGameState, hasPlayerAnswered, setAnswer, setPlayer, getPlayer, getAllPlayers } from '@/lib/redis';
-import { pusherServer, ADMIN_CHANNEL } from '@/lib/pusher-server';
+import { pusherServer, ADMIN_CHANNEL, GAME_CHANNEL } from '@/lib/pusher-server';
 import { QUESTIONS } from '@/lib/questions';
 import { calculateScore } from '@/lib/scoring';
 
@@ -45,12 +45,20 @@ export async function POST(req: NextRequest) {
 
   const allAnswered = answeredCount === allPlayers.length;
 
-  await pusherServer.trigger(ADMIN_CHANNEL, 'admin:answer-update', {
-    questionIndex: currentQuestionIndex,
-    answered: answeredCount,
-    total: allPlayers.length,
-    allAnswered,
-  });
+  // Broadcast to both admin and present screen
+  await Promise.all([
+    pusherServer.trigger(ADMIN_CHANNEL, 'admin:answer-update', {
+      questionIndex: currentQuestionIndex,
+      answered: answeredCount,
+      total: allPlayers.length,
+      allAnswered,
+    }),
+    pusherServer.trigger(GAME_CHANNEL, 'game:answer-count', {
+      questionIndex: currentQuestionIndex,
+      answered: answeredCount,
+      total: allPlayers.length,
+    }),
+  ]);
 
   return NextResponse.json({ received: true });
 }
