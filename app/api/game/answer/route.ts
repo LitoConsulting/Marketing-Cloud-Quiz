@@ -5,7 +5,10 @@ import { QUESTIONS } from '@/lib/questions';
 import { calculateScore } from '@/lib/scoring';
 
 export async function POST(req: NextRequest) {
-  const playerId = req.cookies.get('player_id')?.value;
+  // Prefer X-Player-Id header (tab-specific, set via sessionStorage) over cookie
+  const playerId =
+    req.headers.get('X-Player-Id') ||
+    req.cookies.get('player_id')?.value;
   if (!playerId) {
     return NextResponse.json({ error: 'Not joined' }, { status: 400 });
   }

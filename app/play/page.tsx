@@ -134,7 +134,16 @@ function AnswerReveal({
 
 // ─── Leaderboard (player view) ──────────────────────────────────────────────────
 
-function PlayerLeaderboard() {
+function PlayerLeaderboard({ isFinal }: { isFinal: boolean }) {
+  if (isFinal) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 text-center">
+        <div className="text-6xl mb-6">🎊</div>
+        <h2 className="text-white text-2xl font-bold mb-3">Quiz Complete!</h2>
+        <p className="text-gray-400 text-lg">Watch the big screen for the reveal!</p>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 text-center">
       <div className="text-5xl mb-5">🏆</div>
@@ -228,9 +237,13 @@ export default function PlayPage() {
   async function handleAnswer(answer: string) {
     setSelectedAnswer(answer);
     setAnswered(true);
+    const playerId = sessionStorage.getItem('quiz_player_id') ?? '';
     await fetch('/api/game/answer', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Player-Id': playerId,
+      },
       body: JSON.stringify({ answer }),
     });
   }
@@ -255,7 +268,7 @@ export default function PlayPage() {
     return <AnswerReveal revealData={revealData} selectedAnswer={selectedAnswer} />;
   }
   if (view === 'leaderboard') {
-    return <PlayerLeaderboard />;
+    return <PlayerLeaderboard isFinal={leaderboardData?.trigger === 'final'} />;
   }
   if (view === 'winner') {
     return <WinnerWait />;

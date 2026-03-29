@@ -167,6 +167,18 @@ const RANK_COLORS = ['text-amber-400', 'text-gray-300', 'text-amber-700', 'text-
 const RANK_MEDALS = ['🥇', '🥈', '🥉', ''];
 
 function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
+  // Final leaderboard: simple transition screen, no scores revealed
+  if (data.trigger === 'final') {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10 text-center">
+        <div className="text-8xl mb-8">🎯</div>
+        <h2 className="text-white text-6xl font-black mb-4">That&apos;s a wrap!</h2>
+        <p className="text-gray-400 text-2xl">Get ready for the podium reveal...</p>
+      </div>
+    );
+  }
+
+  // Mid-game leaderboard: show scores with animation
   const top = data.scores.slice(0, 5);
   const [visibleCount, setVisibleCount] = useState(0);
 
@@ -180,12 +192,8 @@ function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10">
       <div className="text-5xl mb-4">🏆</div>
-      <h2 className="text-white text-4xl font-black mb-2">
-        {data.trigger === 'mid' ? 'Halfway Leaderboard' : 'Final Scores'}
-      </h2>
-      <p className="text-gray-400 mb-10">
-        {data.trigger === 'mid' ? '5 questions to go!' : 'Get ready for the podium reveal!'}
-      </p>
+      <h2 className="text-white text-4xl font-black mb-2">Halfway Leaderboard</h2>
+      <p className="text-gray-400 mb-10">5 questions to go!</p>
       <div className="w-full max-w-xl space-y-3">
         {top.map((entry, i) => (
           <div

@@ -38,6 +38,8 @@ export default function JoinPage() {
       return;
     }
 
+    // Store player_id in sessionStorage (tab-specific) so multi-tab testing works
+    sessionStorage.setItem('quiz_player_id', data.playerId);
     setJoined(true);
     router.push('/play');
   }
