@@ -204,7 +204,14 @@ function AdminPanel() {
             <PrimaryButton label="Reveal Answer" command={{ type: 'reveal-answers' }} color="orange" />
           )}
           {status === 'revealing' && (
-            <PrimaryButton label="Next Question" command={{ type: 'next-question' }} />
+            <PrimaryButton
+              label={
+                currentQuestionIndex === 4 ? 'Show Leaderboard' :
+                currentQuestionIndex >= 9 ? 'Show Final Leaderboard' :
+                'Next Question'
+              }
+              command={{ type: 'next-question' }}
+            />
           )}
           {status === 'leaderboard' && currentQuestionIndex < 10 && (
             <PrimaryButton label="Continue to Next Question" command={{ type: 'advance-leaderboard' }} color="green" />
