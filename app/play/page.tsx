@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameState, GameEvent } from '@/hooks/useGameState';
-import { PusherAnswerRevealed, PusherLeaderboard, PusherQuestion, PusherWinnerReveal } from '@/lib/types';
+import { PusherAnswerRevealed, PusherLeaderboard, PusherQuestion } from '@/lib/types';
 
 // ─── Waiting Room ───────────────────────────────────────────────────────────────
 

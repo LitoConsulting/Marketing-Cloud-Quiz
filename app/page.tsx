@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useGameState } from '@/hooks/useGameState';
 
 export default function JoinPage() {
@@ -48,7 +49,7 @@ export default function JoinPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
         <div className="mb-3">
-          <img src="/quiz-icon.png" alt="Quiz" className="w-16 h-16 mx-auto" />
+          <Image src="/quiz-icon.png" alt="Quiz" width={64} height={64} className="mx-auto" />
         </div>
         <h1 className="text-white text-3xl font-extrabold tracking-tight">Marketing Cloud Meetup Quiz</h1>
         <p className="text-white/40 text-sm mt-1">Welcome! Enter your name to join.</p>

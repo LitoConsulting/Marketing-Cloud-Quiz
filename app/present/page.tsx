@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { QRCodeSVG } from 'qrcode.react';
 import confetti from 'canvas-confetti';
 import { useGameState, GameEvent } from '@/hooks/useGameState';
@@ -22,7 +23,7 @@ function WaitingScreen({ players, playerCount }: { players: { id: string; name: 
     <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="text-center mb-12">
         <div className="mb-4">
-          <img src="/quiz-icon.png" alt="Quiz" className="w-28 h-28 mx-auto" />
+          <Image src="/quiz-icon.png" alt="Quiz" width={112} height={112} className="mx-auto" />
         </div>
         <h1 className="text-white text-6xl font-black tracking-tight">Marketing Cloud Meetup Quiz</h1>
         <p className="text-white/40 text-xl mt-2">Scan to join!</p>
