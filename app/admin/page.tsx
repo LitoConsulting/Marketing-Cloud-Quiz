@@ -29,24 +29,25 @@ function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="glass rounded-2xl p-8 w-full max-w-sm">
         <h1 className="text-white text-2xl font-bold mb-2">Quiz Admin</h1>
-        <p className="text-gray-400 text-sm mb-6">Enter admin password to continue</p>
+        <p className="text-white/40 text-sm mb-6">Enter admin password to continue</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 border border-gray-700 focus:outline-none focus:border-violet-500"
+            className="w-full text-white rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500"
+            style={{ background: 'var(--input)', border: '1px solid var(--card-border)' }}
             autoFocus
           />
           {error && <p className="text-red-400 text-sm">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-semibold rounded-lg py-3 transition-colors"
+            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-white font-semibold rounded-xl py-3 transition-colors"
           >
             {loading ? 'Checking...' : 'Enter'}
           </button>
@@ -69,13 +70,13 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  idle: 'bg-gray-700 text-gray-300',
-  lobby: 'bg-blue-900 text-blue-300',
-  question: 'bg-green-900 text-green-300',
-  revealing: 'bg-yellow-900 text-yellow-300',
-  leaderboard: 'bg-purple-900 text-purple-300',
-  'winner-reveal': 'bg-orange-900 text-orange-300',
-  finished: 'bg-gray-700 text-gray-400',
+  idle: 'bg-white/10 text-white/40',
+  lobby: 'bg-blue-900/60 text-blue-300',
+  question: 'bg-emerald-900/60 text-emerald-300',
+  revealing: 'bg-amber-900/60 text-amber-300',
+  leaderboard: 'bg-cyan-900/60 text-cyan-300',
+  'winner-reveal': 'bg-orange-900/60 text-orange-300',
+  finished: 'bg-white/10 text-white/30',
 };
 
 function AdminPanel() {
@@ -104,7 +105,6 @@ function AdminPanel() {
       setAnswerUpdate(data);
     });
 
-    // Reset answer count when a new question starts
     gameCh.bind('game:question', () => {
       setAnswerUpdate(null);
     });
@@ -130,22 +130,22 @@ function AdminPanel() {
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-gray-400">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white/40">Loading...</div>
       </div>
     );
   }
 
   const { status, currentQuestionIndex, players, playerCount } = gameState;
 
-  function PrimaryButton({ label, command, color = 'violet' }: {
+  function PrimaryButton({ label, command, color = 'cyan' }: {
     label: string;
     command: AdminCommand;
-    color?: 'violet' | 'green' | 'orange';
+    color?: 'cyan' | 'green' | 'orange';
   }) {
     const colors = {
-      violet: 'bg-violet-600 hover:bg-violet-500',
-      green: 'bg-green-600 hover:bg-green-500',
+      cyan: 'bg-cyan-500 hover:bg-cyan-400',
+      green: 'bg-emerald-600 hover:bg-emerald-500',
       orange: 'bg-orange-600 hover:bg-orange-500',
     };
     return (
@@ -160,24 +160,24 @@ function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-lg mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-white text-2xl font-bold">Quiz Admin</h1>
-          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[status] ?? 'bg-gray-700 text-gray-300'}`}>
+          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[status] ?? 'bg-white/10 text-white/40'}`}>
             {STATUS_LABELS[status] ?? status}
           </span>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-400 text-xs uppercase tracking-wide mb-1">Players</div>
+          <div className="glass rounded-xl p-4">
+            <div className="text-white/40 text-xs uppercase tracking-wide mb-1">Players</div>
             <div className="text-white text-3xl font-bold">{playerCount}</div>
           </div>
-          <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-400 text-xs uppercase tracking-wide mb-1">Question</div>
+          <div className="glass rounded-xl p-4">
+            <div className="text-white/40 text-xs uppercase tracking-wide mb-1">Question</div>
             <div className="text-white text-3xl font-bold">
               {status === 'lobby' || status === 'idle' ? '-' : `${Math.min(currentQuestionIndex + 1, 10)}/10`}
             </div>
@@ -186,23 +186,23 @@ function AdminPanel() {
 
         {/* Live answer count during question */}
         {status === 'question' && (
-          <div className="bg-gray-900 rounded-xl p-4 border border-green-900">
-            <div className="text-green-400 text-xs uppercase tracking-wide mb-2">Answers received</div>
+          <div className="glass rounded-xl p-4" style={{ borderColor: 'rgba(52,211,153,0.3)' }}>
+            <div className="text-emerald-400 text-xs uppercase tracking-wide mb-2">Answers received</div>
             <div className="flex items-end gap-2">
               <span className="text-white text-4xl font-black">
                 {answerUpdate?.questionIndex === currentQuestionIndex ? answerUpdate.answered : 0}
               </span>
-              <span className="text-gray-500 text-xl mb-1">/ {playerCount}</span>
+              <span className="text-white/30 text-xl mb-1">/ {playerCount}</span>
             </div>
             {answerUpdate?.allAnswered && (
-              <div className="text-green-400 text-sm mt-2 font-semibold">All players answered!</div>
+              <div className="text-emerald-400 text-sm mt-2 font-semibold">All players answered!</div>
             )}
           </div>
         )}
 
         {/* Primary Action */}
-        <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 space-y-3">
-          <div className="text-gray-400 text-xs uppercase tracking-wide">Action</div>
+        <div className="glass rounded-xl p-4 space-y-3">
+          <div className="text-white/40 text-xs uppercase tracking-wide">Action</div>
 
           {status === 'idle' && (
             <PrimaryButton label="Open Lobby" command={{ type: 'open-game' }} color="green" />
@@ -233,17 +233,17 @@ function AdminPanel() {
             <PrimaryButton label="Next Reveal Step" command={{ type: 'advance-winner' }} color="orange" />
           )}
           {status === 'finished' && (
-            <div className="text-center text-gray-400 py-4">Quiz complete!</div>
+            <div className="text-center text-white/40 py-4">Quiz complete!</div>
           )}
         </div>
 
         {/* Player list */}
         {players.length > 0 && (
-          <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-400 text-xs uppercase tracking-wide mb-3">Players joined</div>
+          <div className="glass rounded-xl p-4">
+            <div className="text-white/40 text-xs uppercase tracking-wide mb-3">Players joined</div>
             <div className="space-y-1 max-h-48 overflow-y-auto">
               {players.map((p) => (
-                <div key={p.id} className="text-white text-sm py-1 border-b border-gray-800 last:border-0">
+                <div key={p.id} className="text-white text-sm py-1 border-b border-white/[0.06] last:border-0">
                   {p.name}
                 </div>
               ))}
@@ -252,7 +252,7 @@ function AdminPanel() {
         )}
 
         {/* Reset */}
-        <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
+        <div className="glass rounded-xl p-4">
           {!confirmReset ? (
             <button
               onClick={() => setConfirmReset(true)}
@@ -272,7 +272,8 @@ function AdminPanel() {
                 </button>
                 <button
                   onClick={() => setConfirmReset(false)}
-                  className="bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg px-4 py-2"
+                  className="text-white/60 hover:text-white text-sm rounded-lg px-4 py-2"
+                  style={{ background: 'var(--input)' }}
                 >
                   Cancel
                 </button>

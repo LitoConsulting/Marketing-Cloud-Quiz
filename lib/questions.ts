@@ -12,7 +12,7 @@ export const QUESTIONS: Question[] = [
       'Marketing Cloud Intelligence',
     ],
     correctAnswer: 'Marketing Cloud Growth / Advanced',
-    funFact: 'MC Growth & Advanced (formerly MC Next) are built directly on Salesforce Core — sharing the same data model, flows, and permissions.',
+    funFact: 'MC Growth & Advanced (formerly MC Next) are built directly on Salesforce Core, sharing the same data model, flows, and permissions as any other Salesforce app.',
   },
   {
     id: 1,
@@ -20,7 +20,7 @@ export const QUESTIONS: Question[] = [
     text: 'In Marketing Cloud Engagement, AMPscript is case-sensitive.',
     options: ['True', 'False'],
     correctAnswer: 'False',
-    funFact: 'AMPscript is NOT case-sensitive — %%[var]%% and %%[VAR]%% are the same. SQL in Query Activity, however, IS case-sensitive for string comparisons.',
+    funFact: 'AMPscript is NOT case-sensitive: %%[var]%% and %%[VAR]%% are identical. SQL in Query Activity, however, IS case-sensitive for string comparisons.',
   },
   {
     id: 2,
@@ -41,7 +41,7 @@ export const QUESTIONS: Question[] = [
     text: 'Data Cloud (Data 360) can unify customer profiles across Marketing Cloud Engagement AND external data sources in the same segment.',
     options: ['True', 'False'],
     correctAnswer: 'True',
-    funFact: 'Data Cloud uses Identity Resolution to merge profiles from MC Engagement, CRM, and external data into a single Unified Individual — powering truly cross-channel segmentation.',
+    funFact: 'Data Cloud uses Identity Resolution to merge profiles from MC Engagement, CRM, and external data into a single Unified Individual. That unified profile powers truly cross-channel segmentation.',
   },
   {
     id: 4,
@@ -54,7 +54,7 @@ export const QUESTIONS: Question[] = [
       'Audience Studio trigger',
     ],
     correctAnswer: 'Data Extension entry with re-evaluation',
-    funFact: 'With "Evaluate New Records & Modified Records" enabled, Journey Builder continuously polls the DE and injects new/updated contacts — no API call required.',
+    funFact: 'With "Evaluate New Records & Modified Records" enabled, Journey Builder continuously polls the DE and injects new/updated contacts. No API call required.',
   },
   {
     id: 5,
@@ -67,7 +67,7 @@ export const QUESTIONS: Question[] = [
       'CONVERT()',
     ],
     correctAnswer: 'STRING_AGG()',
-    funFact: 'MC uses a subset of T-SQL. STRING_AGG() (aggregate string concat) is not supported — you\'d need to work around it with subqueries or AMPscript post-processing.',
+    funFact: 'MC uses a subset of T-SQL. STRING_AGG() (aggregate string concat) is not supported, so you\'d need to work around it with subqueries or AMPscript post-processing.',
   },
   {
     id: 6,
@@ -75,7 +75,7 @@ export const QUESTIONS: Question[] = [
     text: 'When you connect Marketing Cloud to Salesforce CRM via Marketing Cloud Connect, Contacts sync automatically without any configuration.',
     options: ['True', 'False'],
     correctAnswer: 'False',
-    funFact: 'MC Connect gives you the connector — but you still need to configure Synchronized Data Sources, map fields, and set sync schedules. Nothing syncs "automatically" out of the box.',
+    funFact: 'MC Connect gives you the connector, but you still need to configure Synchronized Data Sources, map fields, and set sync schedules. Nothing syncs "automatically" out of the box.',
   },
   {
     id: 7,
@@ -88,7 +88,7 @@ export const QUESTIONS: Question[] = [
       'Holds contacts pending GDPR deletion',
     ],
     correctAnswer: 'Prevents listed addresses from receiving a specific send',
-    funFact: 'Suppression Lists are send-level exclusions — you attach them to a specific send or journey send activity. They\'re different from the global Exclusion List or bounce handling.',
+    funFact: 'Suppression Lists are send-level exclusions: you attach them to a specific send or journey send activity. They\'re different from the global Exclusion List or bounce handling.',
   },
   {
     id: 8,
@@ -96,7 +96,7 @@ export const QUESTIONS: Question[] = [
     text: 'What is the maximum number of activities allowed in a single Marketing Cloud Automation Studio automation?',
     options: ['20', '50', 'No hard limit', '100'],
     correctAnswer: 'No hard limit',
-    funFact: 'There\'s no documented hard limit on activities per automation — but performance degrades with very long chains. Best practice is to split complex automations into logical sub-automations.',
+    funFact: 'There\'s no documented hard limit on activities per automation, but performance degrades with very long chains. Best practice is to split complex automations into logical sub-automations.',
   },
   {
     id: 9,
@@ -109,7 +109,7 @@ export const QUESTIONS: Question[] = [
       'Engagement Studio Program',
     ],
     correctAnswer: 'Flow-triggered Messaging',
-    funFact: 'MC Growth & Advanced include native Flow actions that can trigger email/SMS sends directly from any Salesforce Flow — no API or separate automation needed. A massive differentiator vs. Engagement.',
+    funFact: 'MC Growth & Advanced include native Flow actions that can trigger email/SMS sends directly from any Salesforce Flow, with no API or separate automation needed. That is a huge differentiator compared to Engagement.',
   },
 ];
 

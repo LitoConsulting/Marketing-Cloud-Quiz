@@ -12,7 +12,6 @@ export default function JoinPage() {
   const router = useRouter();
   const { gameState } = useGameState();
 
-  // If already joined (cookie present) and game starts, redirect to /play
   useEffect(() => {
     if (joined && gameState?.status === 'question') {
       router.push('/play');
@@ -38,7 +37,6 @@ export default function JoinPage() {
       return;
     }
 
-    // Store player_id in sessionStorage (tab-specific) so multi-tab testing works
     sessionStorage.setItem('quiz_player_id', data.playerId);
     setJoined(true);
     router.push('/play');
@@ -47,32 +45,31 @@ export default function JoinPage() {
   const status = gameState?.status;
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
-      {/* Logo / Title */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
         <div className="text-5xl mb-3">⚡</div>
-        <h1 className="text-white text-3xl font-black tracking-tight">MC Quiz</h1>
-        <p className="text-gray-400 text-sm mt-1">Marketing Cloud Meetup</p>
+        <h1 className="text-white text-3xl font-extrabold tracking-tight">Marketing Cloud Meetup Quiz</h1>
+        <p className="text-white/40 text-sm mt-1">Welcome! Enter your name to join.</p>
       </div>
 
       {status === 'idle' && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm text-center">
-          <p className="text-gray-400">The quiz hasn&apos;t started yet.</p>
-          <p className="text-gray-500 text-sm mt-1">Check back in a moment.</p>
+        <div className="glass rounded-2xl p-8 w-full max-w-sm text-center">
+          <p className="text-white/60">The quiz has not started yet.</p>
+          <p className="text-white/30 text-sm mt-1">Check back in a moment.</p>
         </div>
       )}
 
       {(status === 'question' || status === 'revealing' || status === 'leaderboard' || status === 'winner-reveal') && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm text-center">
-          <p className="text-yellow-400 font-semibold">Game in progress</p>
-          <p className="text-gray-400 text-sm mt-1">Join next time!</p>
+        <div className="glass rounded-2xl p-8 w-full max-w-sm text-center">
+          <p className="text-amber-400 font-semibold">Game in progress</p>
+          <p className="text-white/40 text-sm mt-1">Join next time!</p>
         </div>
       )}
 
       {status === 'lobby' && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm">
+        <div className="glass rounded-2xl p-8 w-full max-w-sm">
           <h2 className="text-white text-xl font-bold mb-1">Join the quiz</h2>
-          <p className="text-gray-400 text-sm mb-6">Enter your name to join</p>
+          <p className="text-white/40 text-sm mb-6">Enter your name to join</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
@@ -80,7 +77,8 @@ export default function JoinPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               maxLength={20}
-              className="w-full bg-gray-800 text-white text-lg rounded-xl px-4 py-4 border border-gray-700 focus:outline-none focus:border-violet-500 placeholder-gray-600"
+              className="w-full text-white text-lg rounded-xl px-4 py-4 focus:outline-none focus:border-cyan-500 placeholder-white/20"
+              style={{ background: 'var(--input)', border: '1px solid var(--card-border)' }}
               autoFocus
               autoComplete="off"
             />
@@ -88,19 +86,19 @@ export default function JoinPage() {
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-bold text-lg rounded-xl py-4 transition-colors"
+              className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-white font-bold text-lg rounded-xl py-4 transition-colors"
             >
               {loading ? 'Joining...' : "Let's go!"}
             </button>
           </form>
-          <p className="text-gray-600 text-xs text-center mt-4">
+          <p className="text-white/20 text-xs text-center mt-4">
             {gameState?.playerCount ?? 0} player{gameState?.playerCount !== 1 ? 's' : ''} waiting
           </p>
         </div>
       )}
 
       {!status && (
-        <div className="text-gray-600 text-sm">Connecting...</div>
+        <div className="text-white/20 text-sm">Connecting...</div>
       )}
     </div>
   );

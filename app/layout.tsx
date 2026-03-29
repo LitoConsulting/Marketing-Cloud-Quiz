@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Rethink_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const rethinkSans = Rethink_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-rethink',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "MC Quiz",
+  title: "Marketing Cloud Meetup Quiz",
   description: "Marketing Cloud Meetup Quiz",
 };
 
@@ -24,10 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950`}
-      >
+    <html lang="en" className={rethinkSans.variable}>
+      <body className="antialiased font-rethink">
         {children}
       </body>
     </html>

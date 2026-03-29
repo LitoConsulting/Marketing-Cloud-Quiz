@@ -12,6 +12,9 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        rethink: ['var(--font-rethink)', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],

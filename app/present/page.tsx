@@ -9,7 +9,6 @@ import {
   PusherLeaderboard,
   PusherQuestion,
   PusherWinnerReveal,
-  ScoreEntry,
 } from '@/lib/types';
 
 // ─── Waiting / Lobby Screen ─────────────────────────────────────────────────────
@@ -20,11 +19,11 @@ function WaitingScreen({ players, playerCount }: { players: { id: string; name: 
     : (process.env.NEXT_PUBLIC_APP_URL ?? '') + '/';
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center">
+    <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="text-center mb-12">
         <div className="text-7xl mb-4">⚡</div>
-        <h1 className="text-white text-6xl font-black tracking-tight">MC Quiz</h1>
-        <p className="text-gray-400 text-xl mt-2">Marketing Cloud Meetup</p>
+        <h1 className="text-white text-6xl font-black tracking-tight">Marketing Cloud Meetup Quiz</h1>
+        <p className="text-white/40 text-xl mt-2">Scan to join!</p>
       </div>
 
       <div className="flex gap-16 items-start">
@@ -33,27 +32,27 @@ function WaitingScreen({ players, playerCount }: { players: { id: string; name: 
           <div className="bg-white p-4 rounded-2xl inline-block mb-3">
             <QRCodeSVG value={joinUrl} size={180} />
           </div>
-          <p className="text-gray-400 text-sm">Scan to join</p>
-          <p className="text-gray-500 text-xs mt-1">{joinUrl}</p>
+          <p className="text-white/40 text-sm">Scan to join</p>
+          <p className="text-white/20 text-xs mt-1">{joinUrl}</p>
         </div>
 
         {/* Player list */}
         <div className="min-w-[280px]">
-          <div className="text-violet-400 text-sm uppercase tracking-widest mb-4 font-semibold">
+          <div className="text-cyan-400 text-sm uppercase tracking-widest mb-4 font-semibold">
             {playerCount} player{playerCount !== 1 ? 's' : ''} joined
           </div>
           <div className="space-y-2 max-h-96 overflow-hidden">
             {players.slice(0, 12).map((p, i) => (
               <div
                 key={p.id}
-                className="bg-gray-900 text-white px-4 py-2 rounded-xl text-lg font-medium border border-gray-800 animate-in"
+                className="glass text-white px-4 py-2 rounded-xl text-lg font-medium animate-in"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
                 {p.name}
               </div>
             ))}
             {playerCount > 12 && (
-              <div className="text-gray-500 text-sm px-4">+{playerCount - 12} more...</div>
+              <div className="text-white/30 text-sm px-4">+{playerCount - 12} more...</div>
             )}
           </div>
         </div>
@@ -87,22 +86,22 @@ function QuestionDisplay({
   }, [endsAt]);
 
   const progress = timeLeft / 15;
-  const timerColor = progress > 0.5 ? '#22c55e' : progress > 0.25 ? '#eab308' : '#ef4444';
+  const timerColor = progress > 0.5 ? '#22d3ee' : progress > 0.25 ? '#f59e0b' : '#ef4444';
   const circumference = 2 * Math.PI * 34;
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col p-10">
+    <div className="min-h-screen flex flex-col p-10">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
-        <div className="text-gray-400 text-xl font-semibold">
+        <div className="text-white/40 text-xl font-semibold">
           Question <span className="text-white font-black">{index + 1}</span> / 10
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-gray-400 text-sm">{answeredCount}/{totalPlayers} answered</span>
+          <span className="text-white/40 text-sm">{answeredCount}/{totalPlayers} answered</span>
           {/* Timer circle */}
           <div className="relative w-20 h-20 flex items-center justify-center">
             <svg width="80" height="80" className="absolute -rotate-90">
-              <circle cx="40" cy="40" r="34" fill="none" stroke="#1f2937" strokeWidth="6" />
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
               <circle
                 cx="40" cy="40" r="34" fill="none"
                 stroke={timerColor}
@@ -122,7 +121,7 @@ function QuestionDisplay({
 
       {/* Question text */}
       <div className="flex-1 flex flex-col justify-center">
-        <div className="bg-gray-900 rounded-3xl p-10 mb-8 border border-gray-800">
+        <div className="glass rounded-3xl p-10 mb-8">
           <p className="text-white text-4xl font-bold leading-tight text-center">{question.text}</p>
         </div>
 
@@ -131,7 +130,7 @@ function QuestionDisplay({
           {question.options.map((option, i) => (
             <div
               key={option}
-              className={`${OPTION_COLORS[i] ?? 'bg-gray-700'} rounded-2xl px-6 py-6 flex items-center gap-4`}
+              className={`${OPTION_COLORS[i] ?? 'bg-white/10'} rounded-2xl px-6 py-6 flex items-center gap-4`}
             >
               <span className="text-white/70 text-xl font-bold w-6">{OPTION_ICONS[i]}</span>
               <span className="text-white text-2xl font-semibold">{option}</span>
@@ -147,14 +146,14 @@ function QuestionDisplay({
 
 function AnswerRevealScreen({ revealData }: { revealData: PusherAnswerRevealed }) {
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10">
+    <div className="min-h-screen flex flex-col items-center justify-center p-10">
       <div className="text-6xl mb-6">✅</div>
-      <h2 className="text-gray-400 text-xl mb-2 uppercase tracking-widest">Correct answer</h2>
+      <h2 className="text-white/40 text-xl mb-2 uppercase tracking-widest">Correct answer</h2>
       <div className="text-white text-5xl font-black mb-8 text-center">{revealData.correctAnswer}</div>
       {revealData.funFact && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-3xl text-center">
-          <div className="text-violet-400 text-sm uppercase tracking-wide mb-3">Did you know?</div>
-          <p className="text-gray-200 text-xl leading-relaxed">{revealData.funFact}</p>
+        <div className="glass rounded-2xl p-8 max-w-3xl text-center">
+          <div className="text-cyan-400 text-sm uppercase tracking-wide mb-3">Did you know?</div>
+          <p className="text-white/80 text-xl leading-relaxed">{revealData.funFact}</p>
         </div>
       )}
     </div>
@@ -163,17 +162,17 @@ function AnswerRevealScreen({ revealData }: { revealData: PusherAnswerRevealed }
 
 // ─── Leaderboard ────────────────────────────────────────────────────────────────
 
-const RANK_COLORS = ['text-amber-400', 'text-gray-300', 'text-amber-700', 'text-gray-400'];
 const RANK_MEDALS = ['🥇', '🥈', '🥉', ''];
+const RANK_COLORS = ['text-amber-400', 'text-white/70', 'text-amber-700', 'text-white/40'];
 
 function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
   // Final leaderboard: simple transition screen, no scores revealed
   if (data.trigger === 'final') {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center p-10 text-center">
         <div className="text-8xl mb-8">🎯</div>
         <h2 className="text-white text-6xl font-black mb-4">That&apos;s a wrap!</h2>
-        <p className="text-gray-400 text-2xl">Get ready for the podium reveal...</p>
+        <p className="text-white/40 text-2xl">Get ready for the podium reveal...</p>
       </div>
     );
   }
@@ -190,15 +189,15 @@ function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
   }, [data]); // eslint-disable-line
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10">
+    <div className="min-h-screen flex flex-col items-center justify-center p-10">
       <div className="text-5xl mb-4">🏆</div>
       <h2 className="text-white text-4xl font-black mb-2">Halfway Leaderboard</h2>
-      <p className="text-gray-400 mb-10">5 questions to go!</p>
+      <p className="text-white/40 mb-10">5 questions to go!</p>
       <div className="w-full max-w-xl space-y-3">
         {top.map((entry, i) => (
           <div
             key={entry.playerId}
-            className="bg-gray-900 border border-gray-800 rounded-2xl px-6 py-4 flex items-center gap-4"
+            className="glass rounded-2xl px-6 py-4 flex items-center gap-4"
             style={{
               transform: visibleCount > i ? 'translateX(0)' : 'translateX(-60px)',
               opacity: visibleCount > i ? 1 : 0,
@@ -206,11 +205,11 @@ function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
             }}
           >
             <span className="text-3xl w-8">{RANK_MEDALS[i] ?? ''}</span>
-            <span className={`text-2xl font-black w-8 ${RANK_COLORS[i] ?? 'text-gray-400'}`}>
+            <span className={`text-2xl font-black w-8 ${RANK_COLORS[i] ?? 'text-white/40'}`}>
               {entry.rank}
             </span>
             <span className="text-white text-xl font-semibold flex-1">{entry.name}</span>
-            <span className="text-violet-400 text-xl font-bold">{entry.totalScore} pts</span>
+            <span className="text-cyan-400 text-xl font-bold">{entry.totalScore} pts</span>
           </div>
         ))}
       </div>
@@ -235,7 +234,6 @@ function WinnerRevealScreen({ data }: { data: PusherWinnerReveal }) {
   const visible = useSlideIn(phase);
   const firedConfetti = useRef(false);
 
-  // Confetti cannon when rank1 appears
   useEffect(() => {
     if (phase !== 'rank1' || firedConfetti.current) return;
     firedConfetti.current = true;
@@ -249,14 +247,14 @@ function WinnerRevealScreen({ data }: { data: PusherWinnerReveal }) {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#a855f7', '#ec4899', '#f59e0b', '#22c55e', '#3b82f6'],
+        colors: ['#22d3ee', '#a855f7', '#ec4899', '#f59e0b', '#22c55e'],
       });
       confetti({
         particleCount: 6,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#a855f7', '#ec4899', '#f59e0b', '#22c55e', '#3b82f6'],
+        colors: ['#22d3ee', '#a855f7', '#ec4899', '#f59e0b', '#22c55e'],
       });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
@@ -272,31 +270,31 @@ function WinnerRevealScreen({ data }: { data: PusherWinnerReveal }) {
   if (phase === 'start') {
     const others = (allScores ?? []).filter((s) => s.rank > 3).sort((a, b) => a.rank - b.rank);
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10" style={slideStyle}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-10" style={slideStyle}>
         <h2 className="text-white text-5xl font-black mb-2 text-center">Amazing effort, everyone!</h2>
-        <p className="text-gray-400 text-xl mb-10">Special shoutout to our top participants:</p>
+        <p className="text-white/40 text-xl mb-10">Special shoutout to our top participants:</p>
         {others.length > 0 ? (
           <div className="w-full max-w-2xl space-y-3">
             {others.map((s, i) => (
               <div
                 key={s.playerId}
-                className="bg-gray-900 border border-gray-800 rounded-2xl px-6 py-3 flex items-center gap-4"
+                className="glass rounded-2xl px-6 py-3 flex items-center gap-4"
                 style={{
                   opacity: 0,
                   animation: `fadeSlideIn 0.4s ease forwards`,
                   animationDelay: `${i * 120}ms`,
                 }}
               >
-                <span className="text-gray-500 text-lg font-bold w-8">#{s.rank}</span>
+                <span className="text-white/30 text-lg font-bold w-8">#{s.rank}</span>
                 <span className="text-white text-xl font-semibold flex-1">{s.name}</span>
-                <span className="text-gray-400 text-lg">{s.totalScore} pts</span>
+                <span className="text-white/40 text-lg">{s.totalScore} pts</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-lg">Only 3 players — straight to the podium!</p>
+          <p className="text-white/30 text-lg">Only 3 players: straight to the podium!</p>
         )}
-        <p className="text-violet-400 text-lg mt-10 font-semibold">Now for the podium...</p>
+        <p className="text-cyan-400 text-lg mt-10 font-semibold">Now for the podium...</p>
       </div>
     );
   }
@@ -305,21 +303,21 @@ function WinnerRevealScreen({ data }: { data: PusherWinnerReveal }) {
     const isPodium3 = phase === 'rank3';
     const medal = isPodium3 ? '🥉' : '🥈';
     const place = isPodium3 ? '3rd Place' : '2nd Place';
-    const nameColor = isPodium3 ? 'text-amber-600' : 'text-gray-200';
-    const scoreColor = isPodium3 ? 'text-amber-700' : 'text-gray-300';
+    const nameColor = isPodium3 ? 'text-amber-600' : 'text-white/80';
+    const scoreColor = isPodium3 ? 'text-amber-700' : 'text-white/60';
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center" style={slideStyle}>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={slideStyle}>
         <div className="text-9xl mb-6">{medal}</div>
         <p className={`text-2xl font-bold uppercase tracking-widest mb-6 ${scoreColor}`}>{place}</p>
         <h2 className={`text-8xl font-black mb-4 text-center px-8 ${nameColor}`}>{entry.name}</h2>
-        <p className="text-gray-400 text-3xl font-bold">{entry.totalScore} points</p>
+        <p className="text-white/40 text-3xl font-bold">{entry.totalScore} points</p>
       </div>
     );
   }
 
   if (phase === 'rank1' && entry) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center" style={slideStyle}>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={slideStyle}>
         <div className="text-9xl mb-4">👑</div>
         <p className="text-amber-400 text-3xl font-black uppercase tracking-widest mb-6">
           WINNER!
@@ -327,8 +325,8 @@ function WinnerRevealScreen({ data }: { data: PusherWinnerReveal }) {
         <h2 className="text-white font-black mb-4 text-center px-8" style={{ fontSize: 'clamp(3rem, 10vw, 7rem)', lineHeight: 1.1 }}>
           {entry.name}
         </h2>
-        <p className="text-amber-400 text-4xl font-bold">{entry.totalScore} points</p>
-        <p className="text-gray-300 text-2xl mt-8">Congratulations! 🎉</p>
+        <p className="text-cyan-400 text-4xl font-bold">{entry.totalScore} points</p>
+        <p className="text-white/60 text-2xl mt-8">Congratulations! 🎉</p>
       </div>
     );
   }
@@ -376,7 +374,6 @@ export default function PresentPage() {
 
   const { gameState } = useGameState(handleEvent);
 
-  // Sync initial state on load
   useEffect(() => {
     if (!gameState) return;
     const s = gameState.status;
