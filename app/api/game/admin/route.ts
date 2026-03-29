@@ -7,7 +7,7 @@ import {
   getAnswersForQuestion,
   resetGame,
 } from '@/lib/redis';
-import { pusherServer, GAME_CHANNEL, ADMIN_CHANNEL } from '@/lib/pusher-server';
+import { pusherServer, GAME_CHANNEL } from '@/lib/pusher-server';
 import { QUESTIONS, getPublicQuestion, TOTAL_QUESTIONS, LEADERBOARD_AFTER_QUESTION, QUESTION_DURATION_MS } from '@/lib/questions';
 import { AdminCommand, GameState, ScoreEntry, WinnerRevealPhase } from '@/lib/types';
 

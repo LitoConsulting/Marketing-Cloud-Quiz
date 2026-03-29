@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGameState, hasPlayerAnswered, setAnswer, setPlayer, getPlayer, getAllPlayers } from '@/lib/redis';
+import { getGameState, hasPlayerAnswered, setAnswer, getAllPlayers } from '@/lib/redis';
 import { pusherServer, ADMIN_CHANNEL, GAME_CHANNEL } from '@/lib/pusher-server';
 import { QUESTIONS } from '@/lib/questions';
 import { calculateScore } from '@/lib/scoring';

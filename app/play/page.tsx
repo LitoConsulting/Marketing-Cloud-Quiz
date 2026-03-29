@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameState, GameEvent } from '@/hooks/useGameState';
-import { PusherAnswerRevealed, PusherLeaderboard, PusherQuestion, PusherWinnerReveal, ScoreEntry } from '@/lib/types';
+import { PusherAnswerRevealed, PusherLeaderboard, PusherQuestion, PusherWinnerReveal } from '@/lib/types';
 
 // ─── Waiting Room ───────────────────────────────────────────────────────────────
 
@@ -174,7 +174,6 @@ export default function PlayPage() {
   const [currentQuestion, setCurrentQuestion] = useState<PusherQuestion | null>(null);
   const [revealData, setRevealData] = useState<PusherAnswerRevealed | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<PusherLeaderboard | null>(null);
-  const [winnerData, setWinnerData] = useState<PusherWinnerReveal | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15);
@@ -222,7 +221,6 @@ export default function PlayPage() {
         setView('leaderboard');
         break;
       case 'winner-reveal':
-        setWinnerData(event.data);
         setView('winner');
         break;
     }

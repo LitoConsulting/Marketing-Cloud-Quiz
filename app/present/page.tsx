@@ -168,6 +168,17 @@ const RANK_MEDALS = ['🥇', '🥈', '🥉', ''];
 const RANK_COLORS = ['text-amber-400', 'text-white/70', 'text-amber-700', 'text-white/40'];
 
 function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
+  const top = data.scores.slice(0, 5);
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    if (data.trigger === 'final') return;
+    setVisibleCount(0);
+    top.forEach((_, i) => {
+      setTimeout(() => setVisibleCount(i + 1), i * 200 + 300);
+    });
+  }, [data]); // eslint-disable-line
+
   // Final leaderboard: simple transition screen, no scores revealed
   if (data.trigger === 'final') {
     return (
@@ -178,17 +189,6 @@ function LeaderboardScreen({ data }: { data: PusherLeaderboard }) {
       </div>
     );
   }
-
-  // Mid-game leaderboard: show scores with animation
-  const top = data.scores.slice(0, 5);
-  const [visibleCount, setVisibleCount] = useState(0);
-
-  useEffect(() => {
-    setVisibleCount(0);
-    top.forEach((_, i) => {
-      setTimeout(() => setVisibleCount(i + 1), i * 200 + 300);
-    });
-  }, [data]); // eslint-disable-line
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-10">
