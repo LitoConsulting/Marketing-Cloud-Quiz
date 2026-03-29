@@ -47,7 +47,9 @@ export default function JoinPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
-        <div className="text-5xl mb-3">⚡</div>
+        <div className="mb-3">
+          <img src="/quiz-icon.png" alt="Quiz" className="w-16 h-16 mx-auto" />
+        </div>
         <h1 className="text-white text-3xl font-extrabold tracking-tight">Marketing Cloud Meetup Quiz</h1>
         <p className="text-white/40 text-sm mt-1">Welcome! Enter your name to join.</p>
       </div>

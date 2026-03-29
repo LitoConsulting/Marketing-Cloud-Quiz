@@ -21,7 +21,9 @@ function WaitingScreen({ players, playerCount }: { players: { id: string; name: 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="text-center mb-12">
-        <div className="text-7xl mb-4">⚡</div>
+        <div className="mb-4">
+          <img src="/quiz-icon.png" alt="Quiz" className="w-28 h-28 mx-auto" />
+        </div>
         <h1 className="text-white text-6xl font-black tracking-tight">Marketing Cloud Meetup Quiz</h1>
         <p className="text-white/40 text-xl mt-2">Scan to join!</p>
       </div>
