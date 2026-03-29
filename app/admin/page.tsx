@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { GameStateResponse, AdminCommand } from '@/lib/types';
+import { GameStateResponse, AdminCommand, PusherAnswerUpdate } from '@/lib/types';
+import { getPusherClient } from '@/lib/pusher-client';
 
 // ─── Admin Login ────────────────────────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ function AdminPanel() {
   const [gameState, setGameState] = useState<GameStateResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [answerUpdate, setAnswerUpdate] = useState<PusherAnswerUpdate | null>(null);
 
   const fetchState = useCallback(async () => {
     const res = await fetch('/api/game/state');
@@ -92,6 +94,18 @@ function AdminPanel() {
     const interval = setInterval(fetchState, 3000);
     return () => clearInterval(interval);
   }, [fetchState]);
+
+  useEffect(() => {
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe('quiz-admin');
+    channel.bind('admin:answer-update', (data: PusherAnswerUpdate) => {
+      setAnswerUpdate(data);
+    });
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe('quiz-admin');
+    };
+  }, []);
 
   async function sendCommand(command: AdminCommand) {
     setLoading(true);
@@ -159,6 +173,22 @@ function AdminPanel() {
             </div>
           </div>
         </div>
+
+        {/* Live answer count during question */}
+        {status === 'question' && (
+          <div className="bg-gray-900 rounded-xl p-4 border border-green-900">
+            <div className="text-green-400 text-xs uppercase tracking-wide mb-2">Answers received</div>
+            <div className="flex items-end gap-2">
+              <span className="text-white text-4xl font-black">
+                {answerUpdate?.questionIndex === currentQuestionIndex ? answerUpdate.answered : 0}
+              </span>
+              <span className="text-gray-500 text-xl mb-1">/ {playerCount}</span>
+            </div>
+            {answerUpdate?.allAnswered && (
+              <div className="text-green-400 text-sm mt-2 font-semibold">All players answered!</div>
+            )}
+          </div>
+        )}
 
         {/* Primary Action */}
         <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 space-y-3">

@@ -87,7 +87,7 @@ function QuestionDisplay({
 
   const progress = timeLeft / 15;
   const timerColor = progress > 0.5 ? '#22c55e' : progress > 0.25 ? '#eab308' : '#ef4444';
-  const circumference = 2 * Math.PI * 40;
+  const circumference = 2 * Math.PI * 34;
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col p-10">
@@ -96,24 +96,26 @@ function QuestionDisplay({
         <div className="text-gray-400 text-xl font-semibold">
           Question <span className="text-white font-black">{index + 1}</span> / 10
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <span className="text-gray-400 text-sm">{answeredCount}/{totalPlayers} answered</span>
           {/* Timer circle */}
-          <svg width="90" height="90" className="-rotate-90">
-            <circle cx="45" cy="45" r="40" fill="none" stroke="#1f2937" strokeWidth="6" />
-            <circle
-              cx="45" cy="45" r="40" fill="none"
-              stroke={timerColor}
-              strokeWidth="6"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - progress)}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 0.1s linear, stroke 0.5s' }}
-            />
-          </svg>
-          <span className="text-white text-3xl font-black w-10 text-center absolute" style={{ transform: 'translateX(12px)' }}>
-            {Math.ceil(timeLeft)}
-          </span>
+          <div className="relative w-20 h-20 flex items-center justify-center">
+            <svg width="80" height="80" className="absolute -rotate-90">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#1f2937" strokeWidth="6" />
+              <circle
+                cx="40" cy="40" r="34" fill="none"
+                stroke={timerColor}
+                strokeWidth="6"
+                strokeDasharray={circumference}
+                strokeDashoffset={circumference * (1 - progress)}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 0.1s linear, stroke 0.5s' }}
+              />
+            </svg>
+            <span className="text-white text-2xl font-black relative z-10">
+              {Math.ceil(timeLeft)}
+            </span>
+          </div>
         </div>
       </div>
 
