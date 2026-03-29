@@ -155,20 +155,12 @@ function PlayerLeaderboard({ scores, playerName }: { scores: ScoreEntry[]; playe
 
 // ─── Winner Wait (player view) ──────────────────────────────────────────────────
 
-function WinnerWait({ scores, playerName }: { scores: ScoreEntry[]; playerName: string }) {
-  const myEntry = scores.find((s) => s.name === playerName);
+function WinnerWait() {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 text-center">
-      <div className="text-5xl mb-4">🎊</div>
-      <h2 className="text-white text-2xl font-bold mb-2">Quiz Complete!</h2>
-      {myEntry && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl px-8 py-5 mt-4">
-          <div className="text-gray-400 text-sm mb-1">You finished</div>
-          <div className="text-white text-5xl font-black">#{myEntry.rank}</div>
-          <div className="text-gray-400 text-sm mt-1">{myEntry.totalScore} total points</div>
-        </div>
-      )}
-      <p className="text-gray-500 text-sm mt-6">Watch the big screen for the reveal!</p>
+      <div className="text-6xl mb-6">🎊</div>
+      <h2 className="text-white text-2xl font-bold mb-3">Quiz Complete!</h2>
+      <p className="text-gray-400 text-lg">Watch the big screen for the reveal!</p>
     </div>
   );
 }
@@ -273,8 +265,8 @@ export default function PlayPage() {
   if (view === 'leaderboard' && leaderboardData) {
     return <PlayerLeaderboard scores={leaderboardData.scores} playerName={playerName} />;
   }
-  if (view === 'winner' && winnerData?.allScores) {
-    return <WinnerWait scores={winnerData.allScores} playerName={playerName} />;
+  if (view === 'winner') {
+    return <WinnerWait />;
   }
 
   return <WaitingRoom playerCount={gameState?.playerCount ?? 0} playerName={playerName} />;

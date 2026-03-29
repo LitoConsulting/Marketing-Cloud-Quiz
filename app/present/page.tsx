@@ -262,23 +262,33 @@ function WinnerRevealScreen({ data }: { data: PusherWinnerReveal }) {
   };
 
   if (phase === 'start') {
-    const others = (allScores ?? []).filter((s) => s.rank > 3).sort((a, b) => b.rank - a.rank);
+    const others = (allScores ?? []).filter((s) => s.rank > 3).sort((a, b) => a.rank - b.rank);
     return (
       <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-10" style={slideStyle}>
-        <div className="text-7xl mb-6" style={{ animation: 'bounce 1s infinite' }}>🎊</div>
-        <h2 className="text-white text-6xl font-black mb-8 text-center">And the winners are...</h2>
-        {others.length > 0 && (
-          <div className="text-center">
-            <p className="text-gray-400 text-lg mb-4">Great effort to everyone!</p>
-            <div className="flex flex-wrap gap-2 justify-center max-w-3xl">
-              {others.map((s) => (
-                <span key={s.playerId} className="bg-gray-800 text-gray-300 px-3 py-2 rounded-full text-base">
-                  #{s.rank} {s.name} — {s.totalScore} pts
-                </span>
-              ))}
-            </div>
+        <h2 className="text-white text-5xl font-black mb-2 text-center">Amazing effort, everyone!</h2>
+        <p className="text-gray-400 text-xl mb-10">Special shoutout to our top participants:</p>
+        {others.length > 0 ? (
+          <div className="w-full max-w-2xl space-y-3">
+            {others.map((s, i) => (
+              <div
+                key={s.playerId}
+                className="bg-gray-900 border border-gray-800 rounded-2xl px-6 py-3 flex items-center gap-4"
+                style={{
+                  opacity: 0,
+                  animation: `fadeSlideIn 0.4s ease forwards`,
+                  animationDelay: `${i * 120}ms`,
+                }}
+              >
+                <span className="text-gray-500 text-lg font-bold w-8">#{s.rank}</span>
+                <span className="text-white text-xl font-semibold flex-1">{s.name}</span>
+                <span className="text-gray-400 text-lg">{s.totalScore} pts</span>
+              </div>
+            ))}
           </div>
+        ) : (
+          <p className="text-gray-500 text-lg">Only 3 players — straight to the podium!</p>
         )}
+        <p className="text-violet-400 text-lg mt-10 font-semibold">Now for the podium...</p>
       </div>
     );
   }
