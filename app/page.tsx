@@ -1,101 +1,105 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useGameState } from '@/hooks/useGameState';
+
+export default function JoinPage() {
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [joined, setJoined] = useState(false);
+  const router = useRouter();
+  const { gameState } = useGameState();
+
+  // If already joined (cookie present) and game starts, redirect to /play
+  useEffect(() => {
+    if (joined && gameState?.status === 'question') {
+      router.push('/play');
+    }
+  }, [joined, gameState?.status, router]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    const res = await fetch('/api/game/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim() }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.error ?? 'Something went wrong');
+      return;
+    }
+
+    setJoined(true);
+    router.push('/play');
+  }
+
+  const status = gameState?.status;
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
+      {/* Logo / Title */}
+      <div className="mb-8 text-center">
+        <div className="text-5xl mb-3">⚡</div>
+        <h1 className="text-white text-3xl font-black tracking-tight">MC Quiz</h1>
+        <p className="text-gray-400 text-sm mt-1">Marketing Cloud Meetup</p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {status === 'idle' && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm text-center">
+          <p className="text-gray-400">The quiz hasn&apos;t started yet.</p>
+          <p className="text-gray-500 text-sm mt-1">Check back in a moment.</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+
+      {(status === 'question' || status === 'revealing' || status === 'leaderboard' || status === 'winner-reveal') && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm text-center">
+          <p className="text-yellow-400 font-semibold">Game in progress</p>
+          <p className="text-gray-400 text-sm mt-1">Join next time!</p>
+        </div>
+      )}
+
+      {status === 'lobby' && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-sm">
+          <h2 className="text-white text-xl font-bold mb-1">Join the quiz</h2>
+          <p className="text-gray-400 text-sm mb-6">Enter your name to join</p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              maxLength={20}
+              className="w-full bg-gray-800 text-white text-lg rounded-xl px-4 py-4 border border-gray-700 focus:outline-none focus:border-violet-500 placeholder-gray-600"
+              autoFocus
+              autoComplete="off"
+            />
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading || !name.trim()}
+              className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-bold text-lg rounded-xl py-4 transition-colors"
+            >
+              {loading ? 'Joining...' : "Let's go!"}
+            </button>
+          </form>
+          <p className="text-gray-600 text-xs text-center mt-4">
+            {gameState?.playerCount ?? 0} player{gameState?.playerCount !== 1 ? 's' : ''} waiting
+          </p>
+        </div>
+      )}
+
+      {!status && (
+        <div className="text-gray-600 text-sm">Connecting...</div>
+      )}
     </div>
   );
 }
