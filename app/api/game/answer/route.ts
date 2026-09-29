@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGameState, hasPlayerAnswered, setAnswer, getAllPlayers } from '@/lib/redis';
-import { pusherServer, ADMIN_CHANNEL, GAME_CHANNEL } from '@/lib/pusher-server';
-import { QUESTIONS } from '@/lib/questions';
+import { countAnswers, countPlayers, getGameState, getPlayer, recordAnswer } from '@/lib/redis';
+import { broadcast } from '@/lib/pusher-server';
+import { getQuiz } from '@/lib/quizzes';
 import { calculateScore } from '@/lib/scoring';
+import { revealCurrentQuestion } from '@/lib/game';
+import { EVENT_CONFIG } from '@/lib/event-config';
+import { getPlayerId } from '@/lib/player-id';
+import { PusherAnswerCount } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
-  // Prefer X-Player-Id header (tab-specific, set via sessionStorage) over cookie
-  const playerId =
-    req.headers.get('X-Player-Id') ||
-    req.cookies.get('player_id')?.value;
+  const now = Date.now();
+  const playerId = getPlayerId(req);
   if (!playerId) {
     return NextResponse.json({ error: 'Not joined' }, { status: 400 });
   }
@@ -19,49 +21,41 @@ export async function POST(req: NextRequest) {
   }
 
   const state = await getGameState();
-  if (state.status !== 'question' || state.questionStartedAt === null) {
+  if (state.status !== 'question' || state.questionStartedAt === null || state.questionEndsAt === null) {
     return NextResponse.json({ error: 'No active question' }, { status: 400 });
   }
-
-  const { currentQuestionIndex, questionStartedAt } = state;
-
-  if (await hasPlayerAnswered(currentQuestionIndex, playerId)) {
-    return NextResponse.json({ received: true }); // Already answered — idempotent
+  if (now > state.questionEndsAt + EVENT_CONFIG.answerGraceMs) {
+    return NextResponse.json({ error: "Time's up!" }, { status: 400 });
   }
 
-  const question = QUESTIONS[currentQuestionIndex];
-  const isCorrect = answer === question.correctAnswer;
-  const score = calculateScore(Date.now(), questionStartedAt, isCorrect);
+  const { gameId, currentQuestionIndex: idx, questionStartedAt } = state;
+  const quiz = getQuiz(state.quizId);
+  const question = quiz.questions[idx];
+  if (!question.options.includes(answer)) {
+    return NextResponse.json({ error: 'Invalid answer' }, { status: 400 });
+  }
+  if (!(await getPlayer(gameId, playerId))) {
+    return NextResponse.json({ error: 'Not joined' }, { status: 400 });
+  }
 
-  await setAnswer(currentQuestionIndex, playerId, {
+  const correct = answer === question.correctAnswer;
+  const recorded = await recordAnswer(gameId, idx, playerId, {
     answer,
-    answeredAt: Date.now(),
-    score,
-    correct: isCorrect,
+    answeredAt: now,
+    score: calculateScore(now - questionStartedAt, quiz.questionDurationMs, correct),
+    correct,
   });
+  if (!recorded) {
+    return NextResponse.json({ received: true }); // Already answered, double tap is harmless
+  }
 
-  // Count how many have answered
-  const allPlayers = await getAllPlayers();
-  const answeredCount = (await Promise.all(
-    allPlayers.map((p) => hasPlayerAnswered(currentQuestionIndex, p.id))
-  )).filter(Boolean).length;
+  const [answered, total] = await Promise.all([countAnswers(gameId, idx), countPlayers(gameId)]);
+  const count: PusherAnswerCount = { questionIndex: idx, answered, total };
+  await broadcast('game:answer-count', count);
 
-  const allAnswered = answeredCount === allPlayers.length;
-
-  // Broadcast to both admin and present screen
-  await Promise.all([
-    pusherServer.trigger(ADMIN_CHANNEL, 'admin:answer-update', {
-      questionIndex: currentQuestionIndex,
-      answered: answeredCount,
-      total: allPlayers.length,
-      allAnswered,
-    }),
-    pusherServer.trigger(GAME_CHANNEL, 'game:answer-count', {
-      questionIndex: currentQuestionIndex,
-      answered: answeredCount,
-      total: allPlayers.length,
-    }),
-  ]);
+  if (EVENT_CONFIG.autoReveal && answered >= total) {
+    await revealCurrentQuestion();
+  }
 
   return NextResponse.json({ received: true });
 }

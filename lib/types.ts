@@ -9,20 +9,26 @@ export type GameStatus =
   | 'winner-reveal'
   | 'finished';
 
-export type WinnerRevealPhase =
-  | 'idle'
-  | 'start'
-  | 'rank4'
-  | 'rank3'
-  | 'rank2'
-  | 'rank1';
+export type WinnerRevealPhase = 'idle' | 'start' | 'rank3' | 'rank2' | 'rank1';
+
+export interface RevealSummary {
+  questionIndex: number;
+  correctAnswer: string;
+  funFact?: string;
+  distribution: number[]; // answer count per option, same order as question.options
+  answeredCount: number;
+  playerCount: number;
+}
 
 export interface GameState {
+  gameId: string; // namespaces players/answers in Redis, new on every lobby open/reset
+  quizId: string;
   status: GameStatus;
   currentQuestionIndex: number;
   questionStartedAt: number | null;
   questionEndsAt: number | null;
   winnerRevealPhase: WinnerRevealPhase;
+  lastReveal: RevealSummary | null;
 }
 
 // ─── Players ───────────────────────────────────────────────────────────────────
@@ -46,15 +52,16 @@ export interface ScoreEntry {
   playerId: string;
   name: string;
   totalScore: number;
+  correctCount: number;
   rank: number;
+  previousRank: number | null; // rank before the latest question, for movement arrows
 }
 
-// ─── Questions ─────────────────────────────────────────────────────────────────
+// ─── Questions & quizzes ───────────────────────────────────────────────────────
 
 export type QuestionType = 'mcq' | 'truefalse';
 
 export interface Question {
-  id: number;
   type: QuestionType;
   text: string;
   options: string[];
@@ -62,71 +69,85 @@ export interface Question {
   funFact?: string; // Shown after reveal
 }
 
-// Public version — no correctAnswer
+// Public version, no correctAnswer
 export interface PublicQuestion {
-  id: number;
   type: QuestionType;
   text: string;
   options: string[];
-  funFact?: string;
+}
+
+export interface Quiz {
+  id: string;
+  title: string; // shown on big screen and join page
+  subtitle?: string;
+  questionDurationMs: number;
+  leaderboardAfterQuestion: number | null; // 0-indexed; null = no mid-game leaderboard
+  questions: Question[];
+}
+
+export interface QuizInfo {
+  id: string;
+  title: string;
+  subtitle?: string;
+  totalQuestions: number;
+  questionDurationMs: number;
+  leaderboardAfterQuestion: number | null;
 }
 
 // ─── API Payloads ──────────────────────────────────────────────────────────────
 
 export type AdminCommand =
-  | { type: 'open-game' }
-  | { type: 'start-quiz' }
-  | { type: 'reveal-answers' }
-  | { type: 'next-question' }
-  | { type: 'show-leaderboard' }
-  | { type: 'advance-leaderboard' }
-  | { type: 'start-winner-reveal' }
-  | { type: 'advance-winner' }
-  | { type: 'reset-game' };
+  | { type: 'open-lobby' }
+  | { type: 'next'; expectedStatus: GameStatus; expectedIndex: number }
+  | { type: 'select-quiz'; quizId: string }
+  | { type: 'reset' };
+
+export interface MyStatus {
+  id: string;
+  name: string;
+  totalScore: number;
+  rank: number | null; // null while hidden to keep the podium a surprise
+  playerCount: number;
+  streak: number; // consecutive correct answers up to the latest revealed question
+  currentAnswer: string | null; // answer locked in for the active question
+  lastResult: { questionIndex: number; answer: string | null; correct: boolean; points: number } | null;
+}
 
 export interface GameStateResponse {
+  serverNow: number;
+  gameId: string;
   status: GameStatus;
+  quiz: QuizInfo;
   currentQuestionIndex: number;
   question: PublicQuestion | null;
-  players: { id: string; name: string }[];
   questionEndsAt: number | null;
+  players: { id: string; name: string }[];
   playerCount: number;
+  answeredCount: number;
+  reveal: RevealSummary | null;
+  leaderboard: ScoreEntry[] | null;
+  isFinalLeaderboard: boolean;
   winnerRevealPhase: WinnerRevealPhase;
+  canJoin: boolean;
+  me: MyStatus | null;
+}
+
+export interface AdminInfoResponse {
+  quizzes: QuizInfo[];
+  currentQuestion: Question | null;
 }
 
 // ─── Pusher Events ─────────────────────────────────────────────────────────────
+// Server state is the single source of truth. Pusher only tells clients to refetch,
+// plus a lightweight answer counter so we don't refetch on every single answer.
 
-export interface PusherPlayerJoined {
-  players: { id: string; name: string }[];
-}
-
-export interface PusherQuestion {
+export interface PusherStateChanged {
+  status: GameStatus;
   index: number;
-  question: PublicQuestion;
-  endsAt: number;
 }
 
-export interface PusherAnswerRevealed {
-  index: number;
-  correctAnswer: string;
-  funFact?: string;
-  scores: ScoreEntry[];
-}
-
-export interface PusherLeaderboard {
-  scores: ScoreEntry[];
-  trigger: 'mid' | 'final';
-}
-
-export interface PusherWinnerReveal {
-  phase: WinnerRevealPhase;
-  entry?: ScoreEntry;
-  allScores?: ScoreEntry[];
-}
-
-export interface PusherAnswerUpdate {
+export interface PusherAnswerCount {
   questionIndex: number;
   answered: number;
   total: number;
-  allAnswered: boolean;
 }

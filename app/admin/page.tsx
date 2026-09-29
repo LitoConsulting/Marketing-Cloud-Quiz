@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { GameStateResponse, AdminCommand, PusherAnswerUpdate } from '@/lib/types';
-import { getPusherClient } from '@/lib/pusher-client';
+import { useCountdown, useGameState } from '@/hooks/useGameState';
+import { nextAction, nextActionLabel } from '@/lib/flow';
+import { EVENT_CONFIG } from '@/lib/event-config';
+import { AdminCommand, AdminInfoResponse } from '@/lib/types';
 
 // ─── Admin Login ────────────────────────────────────────────────────────────────
 
@@ -29,7 +31,7 @@ function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="glass rounded-2xl p-8 w-full max-w-sm">
         <h1 className="text-white text-2xl font-bold mb-2">Quiz Admin</h1>
         <p className="text-white/40 text-sm mb-6">Enter admin password to continue</p>
@@ -80,55 +82,46 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function AdminPanel() {
-  const [gameState, setGameState] = useState<GameStateResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { state, serverNow, refetch } = useGameState({ watchPlayers: true });
+  const [info, setInfo] = useState<AdminInfoResponse | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
-  const [answerUpdate, setAnswerUpdate] = useState<PusherAnswerUpdate | null>(null);
+  const timeLeft = useCountdown(state?.status === 'question' ? state.questionEndsAt : null, serverNow);
 
-  const fetchState = useCallback(async () => {
-    const res = await fetch('/api/game/state');
-    if (res.ok) setGameState(await res.json());
+  const fetchInfo = useCallback(async () => {
+    const res = await fetch('/api/game/admin', { cache: 'no-store' });
+    if (res.ok) setInfo(await res.json());
   }, []);
 
+  // Host-only data (answer key) follows the question being shown
+  const infoKey = state ? `${state.gameId}:${state.status}:${state.currentQuestionIndex}:${state.quiz.id}` : '';
   useEffect(() => {
-    fetchState();
-    const interval = setInterval(fetchState, 3000);
-    return () => clearInterval(interval);
-  }, [fetchState]);
-
-  useEffect(() => {
-    const pusher = getPusherClient();
-    const adminCh = pusher.subscribe('quiz-admin');
-    const gameCh = pusher.subscribe('quiz-game');
-
-    adminCh.bind('admin:answer-update', (data: PusherAnswerUpdate) => {
-      setAnswerUpdate(data);
-    });
-
-    gameCh.bind('game:question', () => {
-      setAnswerUpdate(null);
-    });
-
-    return () => {
-      adminCh.unbind_all();
-      gameCh.unbind_all();
-      pusher.unsubscribe('quiz-admin');
-      pusher.unsubscribe('quiz-game');
-    };
-  }, []);
+    if (infoKey) fetchInfo();
+  }, [infoKey, fetchInfo]);
 
   async function sendCommand(command: AdminCommand) {
-    setLoading(true);
-    await fetch('/api/game/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ command }),
-    });
-    await fetchState();
-    setLoading(false);
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch('/api/game/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // 409 = someone (or the auto-reveal) already moved the game on, the refetch below catches up
+        if (res.status !== 409) setError(data.error ?? 'Something went wrong');
+      }
+    } catch {
+      setError('Connection problem, try again');
+    }
+    await refetch();
+    setBusy(false);
   }
 
-  if (!gameState) {
+  if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-white/40">Loading...</div>
@@ -136,31 +129,14 @@ function AdminPanel() {
     );
   }
 
-  const { status, currentQuestionIndex, players, playerCount } = gameState;
-
-  function PrimaryButton({ label, command, color = 'cyan' }: {
-    label: string;
-    command: AdminCommand;
-    color?: 'cyan' | 'green' | 'orange';
-  }) {
-    const colors = {
-      cyan: 'bg-cyan-500 hover:bg-cyan-400',
-      green: 'bg-emerald-600 hover:bg-emerald-500',
-      orange: 'bg-orange-600 hover:bg-orange-500',
-    };
-    return (
-      <button
-        onClick={() => sendCommand(command)}
-        disabled={loading}
-        className={`${colors[color]} disabled:opacity-50 text-white font-bold rounded-xl px-6 py-4 text-lg transition-colors w-full`}
-      >
-        {loading ? '...' : label}
-      </button>
-    );
-  }
+  const { status, quiz, currentQuestionIndex, players, playerCount } = state;
+  const action = nextAction(state, quiz, playerCount);
+  const canPickQuiz = status === 'idle' || status === 'lobby' || status === 'finished';
+  const showQuestionNo = !['idle', 'lobby'].includes(status);
+  const q = info?.currentQuestion;
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-5 pb-36">
       <div className="max-w-lg mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -170,8 +146,32 @@ function AdminPanel() {
           </span>
         </div>
 
+        {/* Quiz picker */}
+        <div className="glass rounded-xl p-4">
+          <div className="text-white/40 text-xs uppercase tracking-wide mb-2">Quiz</div>
+          {canPickQuiz && info ? (
+            <div className="space-y-2">
+              {info.quizzes.map((qz) => (
+                <button
+                  key={qz.id}
+                  onClick={() => qz.id !== quiz.id && sendCommand({ type: 'select-quiz', quizId: qz.id })}
+                  disabled={busy}
+                  className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
+                    qz.id === quiz.id ? 'bg-cyan-500/20 text-white ring-1 ring-cyan-400' : 'text-white/60 hover:bg-white/5'
+                  }`}
+                >
+                  <span className="font-semibold">{qz.title}</span>
+                  <span className="text-white/40"> · {qz.totalQuestions} questions · {qz.questionDurationMs / 1000}s</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-white font-semibold">{quiz.title}</div>
+          )}
+        </div>
+
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="glass rounded-xl p-4">
             <div className="text-white/40 text-xs uppercase tracking-wide mb-1">Players</div>
             <div className="text-white text-3xl font-bold">{playerCount}</div>
@@ -179,73 +179,60 @@ function AdminPanel() {
           <div className="glass rounded-xl p-4">
             <div className="text-white/40 text-xs uppercase tracking-wide mb-1">Question</div>
             <div className="text-white text-3xl font-bold">
-              {status === 'lobby' || status === 'idle' ? '-' : `${Math.min(currentQuestionIndex + 1, 10)}/10`}
+              {showQuestionNo ? `${Math.min(currentQuestionIndex + 1, quiz.totalQuestions)}/${quiz.totalQuestions}` : '-'}
+            </div>
+          </div>
+          <div className="glass rounded-xl p-4">
+            <div className="text-white/40 text-xs uppercase tracking-wide mb-1">
+              {status === 'question' ? 'Time' : 'Answered'}
+            </div>
+            <div className="text-white text-3xl font-bold tabular-nums">
+              {status === 'question' ? `${Math.ceil(timeLeft)}s` : status === 'revealing' ? state.answeredCount : '-'}
             </div>
           </div>
         </div>
 
-        {/* Live answer count during question */}
+        {/* Live answer count */}
         {status === 'question' && (
           <div className="glass rounded-xl p-4" style={{ borderColor: 'rgba(52,211,153,0.3)' }}>
             <div className="text-emerald-400 text-xs uppercase tracking-wide mb-2">Answers received</div>
             <div className="flex items-end gap-2">
-              <span className="text-white text-4xl font-black">
-                {answerUpdate?.questionIndex === currentQuestionIndex ? answerUpdate.answered : 0}
-              </span>
+              <span className="text-white text-4xl font-black">{state.answeredCount}</span>
               <span className="text-white/30 text-xl mb-1">/ {playerCount}</span>
             </div>
-            {answerUpdate?.allAnswered && (
-              <div className="text-emerald-400 text-sm mt-2 font-semibold">All players answered!</div>
+            {EVENT_CONFIG.autoReveal && (
+              <div className="text-white/40 text-xs mt-2">Auto-reveals when time is up or everyone has answered.</div>
             )}
           </div>
         )}
 
-        {/* Primary Action */}
-        <div className="glass rounded-xl p-4 space-y-3">
-          <div className="text-white/40 text-xs uppercase tracking-wide">Action</div>
-
-          {status === 'idle' && (
-            <PrimaryButton label="Open Lobby" command={{ type: 'open-game' }} color="green" />
-          )}
-          {status === 'lobby' && (
-            <PrimaryButton label={`Start Quiz (${playerCount} players)`} command={{ type: 'start-quiz' }} color="green" />
-          )}
-          {status === 'question' && (
-            <PrimaryButton label="Reveal Answer" command={{ type: 'reveal-answers' }} color="orange" />
-          )}
-          {status === 'revealing' && (
-            <PrimaryButton
-              label={
-                currentQuestionIndex === 4 ? 'Show Leaderboard' :
-                currentQuestionIndex >= 9 ? 'Show Final Leaderboard' :
-                'Next Question'
-              }
-              command={{ type: 'next-question' }}
-            />
-          )}
-          {status === 'leaderboard' && currentQuestionIndex < 10 && (
-            <PrimaryButton label="Continue to Next Question" command={{ type: 'advance-leaderboard' }} color="green" />
-          )}
-          {status === 'leaderboard' && currentQuestionIndex >= 10 && (
-            <PrimaryButton label="Start Winner Reveal" command={{ type: 'start-winner-reveal' }} color="orange" />
-          )}
-          {status === 'winner-reveal' && (
-            <PrimaryButton label="Next Reveal Step" command={{ type: 'advance-winner' }} color="orange" />
-          )}
-          {status === 'finished' && (
-            <div className="text-center text-white/40 py-4">Quiz complete!</div>
-          )}
-        </div>
+        {/* Answer key for the host */}
+        {q && (
+          <div className="glass rounded-xl p-4">
+            <div className="text-white/40 text-xs uppercase tracking-wide mb-2">Answer key</div>
+            <p className="text-white text-sm mb-3">{q.text}</p>
+            <div className="space-y-1">
+              {q.options.map((opt, i) => (
+                <div key={opt} className={`text-sm rounded-lg px-3 py-1.5 flex justify-between ${
+                  opt === q.correctAnswer ? 'bg-emerald-500/20 text-emerald-300 font-semibold' : 'text-white/40'
+                }`}>
+                  <span>{opt === q.correctAnswer ? '✓ ' : ''}{opt}</span>
+                  {state.reveal && <span className="tabular-nums">{state.reveal.distribution[i]}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Player list */}
         {players.length > 0 && (
           <div className="glass rounded-xl p-4">
             <div className="text-white/40 text-xs uppercase tracking-wide mb-3">Players joined</div>
-            <div className="space-y-1 max-h-48 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
               {players.map((p) => (
-                <div key={p.id} className="text-white text-sm py-1 border-b border-white/[0.06] last:border-0">
+                <span key={p.id} className="text-white text-sm rounded-md px-2 py-1" style={{ background: 'var(--input)' }}>
                   {p.name}
-                </div>
+                </span>
               ))}
             </div>
           </div>
@@ -254,18 +241,15 @@ function AdminPanel() {
         {/* Reset */}
         <div className="glass rounded-xl p-4">
           {!confirmReset ? (
-            <button
-              onClick={() => setConfirmReset(true)}
-              className="text-red-400 hover:text-red-300 text-sm w-full text-left"
-            >
+            <button onClick={() => setConfirmReset(true)} className="text-red-400 hover:text-red-300 text-sm w-full text-left">
               Reset game
             </button>
           ) : (
             <div className="space-y-2">
-              <p className="text-red-400 text-sm">All data will be wiped. Are you sure?</p>
+              <p className="text-red-400 text-sm">All players and scores will be wiped. Are you sure?</p>
               <div className="flex gap-2">
                 <button
-                  onClick={() => { sendCommand({ type: 'reset-game' }); setConfirmReset(false); }}
+                  onClick={() => { sendCommand({ type: 'reset' }); setConfirmReset(false); }}
                   className="bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg px-4 py-2"
                 >
                   Yes, reset
@@ -282,6 +266,39 @@ function AdminPanel() {
           )}
         </div>
       </div>
+      {/* Primary action, pinned to the bottom so the host never has to scroll for it */}
+      <div className="fixed bottom-0 inset-x-0 z-20 px-5 pt-6 pb-5"
+        style={{ background: 'linear-gradient(to top, #080d1a 70%, rgba(8,13,26,0))', paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+        <div className="max-w-lg mx-auto space-y-2">
+          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          {status === 'finished' && <div className="text-center text-white/40 text-sm">Quiz complete! 🎉</div>}
+
+          {(status === 'idle' || status === 'finished') && (
+            <button
+              onClick={() => sendCommand({ type: 'open-lobby' })}
+              disabled={busy}
+              className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl px-6 py-4 text-lg transition-colors w-full shadow-lg"
+            >
+              {busy ? '...' : status === 'finished' ? 'Open New Lobby' : 'Open Lobby'}
+            </button>
+          )}
+
+          {action.kind !== 'none' && (
+            <button
+              onClick={() => sendCommand({ type: 'next', expectedStatus: status, expectedIndex: currentQuestionIndex })}
+              disabled={busy || (action.kind === 'start-question' && action.index === 0 && playerCount === 0)}
+              className={`${
+                action.kind === 'reveal' || action.kind === 'winner-phase' || action.kind === 'finish'
+                  ? 'bg-orange-600 hover:bg-orange-500'
+                  : 'bg-cyan-500 hover:bg-cyan-400'
+              } disabled:opacity-50 text-white font-bold rounded-xl px-6 py-4 text-lg transition-colors w-full shadow-lg`}
+            >
+              {busy ? '...' : nextActionLabel(action)}
+              {action.kind === 'start-question' && action.index === 0 && ` (${playerCount} players)`}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -294,7 +311,8 @@ export default function AdminPage() {
   useEffect(() => {
     fetch('/api/auth/check')
       .then((res) => res.json())
-      .then((data) => setAuthed(data.ok));
+      .then((data) => setAuthed(data.ok))
+      .catch(() => setAuthed(false));
   }, []);
 
   if (authed === null) return null;

@@ -3,76 +3,90 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useGameState } from '@/hooks/useGameState';
+import { useGameState, PLAYER_ID_KEY } from '@/hooks/useGameState';
 
 export default function JoinPage() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [joined, setJoined] = useState(false);
   const router = useRouter();
-  const { gameState } = useGameState();
+  const { state } = useGameState({ asPlayer: true });
 
+  // Already in this game (e.g. scanned the QR code again): go straight back to it
   useEffect(() => {
-    if (joined && gameState?.status === 'question') {
-      router.push('/play');
-    }
-  }, [joined, gameState?.status, router]);
+    if (state?.me) router.replace('/play');
+  }, [state?.me, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const res = await fetch('/api/game/join', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim() }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error ?? 'Something went wrong');
-      return;
+    try {
+      const res = await fetch('/api/game/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Something went wrong');
+        setLoading(false);
+        return;
+      }
+      try {
+        sessionStorage.setItem(PLAYER_ID_KEY, data.playerId);
+      } catch {
+        // Private mode etc, the cookie still works
+      }
+      router.push('/play');
+    } catch {
+      setError('Connection problem, please try again');
+      setLoading(false);
     }
-
-    sessionStorage.setItem('quiz_player_id', data.playerId);
-    setJoined(true);
-    router.push('/play');
   }
 
-  const status = gameState?.status;
+  const status = state?.status;
+  const inProgress = status && status !== 'lobby' && status !== 'idle';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="mb-8 text-center">
         <div className="mb-3">
-          <Image src="/quiz-icon.png" alt="Quiz" width={64} height={64} className="mx-auto" />
+          <Image src="/quiz-icon.png" alt="" width={64} height={64} className="mx-auto" />
         </div>
-        <h1 className="text-white text-3xl font-extrabold tracking-tight">Marketing Cloud Meetup Quiz</h1>
-        <p className="text-white/40 text-sm mt-1">Welcome! Enter your name to join.</p>
+        {state?.quiz.subtitle && (
+          <p className="text-cyan-400 text-xs uppercase tracking-[0.2em] font-semibold mb-2">{state.quiz.subtitle}</p>
+        )}
+        <h1 className="text-white text-3xl font-extrabold tracking-tight text-balance">
+          {state?.quiz.title ?? 'Quiz'}
+        </h1>
       </div>
 
       {status === 'idle' && (
         <div className="glass rounded-2xl p-8 w-full max-w-sm text-center">
-          <p className="text-white/60">The quiz has not started yet.</p>
-          <p className="text-white/30 text-sm mt-1">Check back in a moment.</p>
+          <p className="text-white/60">The quiz has not opened yet.</p>
+          <p className="text-white/30 text-sm mt-1">This page updates by itself, hang tight!</p>
         </div>
       )}
 
-      {(status === 'question' || status === 'revealing' || status === 'leaderboard' || status === 'winner-reveal') && (
+      {state && !state.canJoin && inProgress && (
         <div className="glass rounded-2xl p-8 w-full max-w-sm text-center">
-          <p className="text-amber-400 font-semibold">Game in progress</p>
-          <p className="text-white/40 text-sm mt-1">Join next time!</p>
+          <p className="text-amber-400 font-semibold">We&apos;re at the grand finale</p>
+          <p className="text-white/40 text-sm mt-1">Joining is closed, but enjoy the podium reveal!</p>
         </div>
       )}
 
-      {status === 'lobby' && (
+      {state?.canJoin && !state.me && (
         <div className="glass rounded-2xl p-8 w-full max-w-sm">
-          <h2 className="text-white text-xl font-bold mb-1">Join the quiz</h2>
-          <p className="text-white/40 text-sm mb-6">Enter your name to join</p>
+          <h2 className="text-white text-xl font-bold mb-1">
+            {inProgress ? 'Jump right in!' : 'Join the quiz'}
+          </h2>
+          <p className="text-white/40 text-sm mb-6">
+            {inProgress
+              ? `We're on question ${state.currentQuestionIndex + 1} of ${state.quiz.totalQuestions}. You can still play!`
+              : 'Pick a name for the leaderboard'}
+          </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
@@ -84,6 +98,7 @@ export default function JoinPage() {
               style={{ background: 'var(--input)', border: '1px solid var(--card-border)' }}
               autoFocus
               autoComplete="off"
+              enterKeyHint="go"
             />
             {error && <p className="text-red-400 text-sm">{error}</p>}
             <button
@@ -95,14 +110,12 @@ export default function JoinPage() {
             </button>
           </form>
           <p className="text-white/20 text-xs text-center mt-4">
-            {gameState?.playerCount ?? 0} player{gameState?.playerCount !== 1 ? 's' : ''} waiting
+            {state.playerCount} player{state.playerCount !== 1 ? 's' : ''} in the game
           </p>
         </div>
       )}
 
-      {!status && (
-        <div className="text-white/20 text-sm">Connecting...</div>
-      )}
+      {!state && <div className="text-white/20 text-sm">Connecting...</div>}
     </div>
   );
 }

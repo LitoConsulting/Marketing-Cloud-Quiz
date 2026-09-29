@@ -1,0 +1,131 @@
+import { Quiz } from '../types';
+
+export const dreamforce2026: Quiz = {
+  id: 'dreamforce-2026',
+  title: "Dreamforce '26 Recap Quiz",
+  subtitle: 'Marketing Cloud User Group',
+  questionDurationMs: 20_000,
+  leaderboardAfterQuestion: 4,
+  questions: [
+    {
+      type: 'mcq',
+      text: 'Salesforce Marketing Cloud was first launched at Dreamforce 2012. Which two acquisitions was it built from?',
+      options: [
+        'ExactTarget & Pardot',
+        'Datorama & Evergage',
+        'Radian6 & Buddy Media',
+        'Krux & Demandware',
+      ],
+      correctAnswer: 'Radian6 & Buddy Media',
+      funFact: 'Radian6 ($326M) and Buddy Media ($689M) made Marketing Cloud a social marketing tool at first. Email only arrived a year later with ExactTarget.',
+    },
+    {
+      type: 'mcq',
+      text: "Before Dreamforce even existed, Marc Benioff crashed rival Siebel's user conference in 2000. How?",
+      options: [
+        'Hacked the keynote screens',
+        'Hired fake protesters and a fake TV crew',
+        'Flew a blimp over the venue',
+        'Handed out free cupcakes',
+      ],
+      correctAnswer: 'Hired fake protesters and a fake TV crew',
+      funFact: 'The signs read "The internet is really neat, software is obsolete". The TV channel, "Channel 22", did not exist, but real news crews showed up anyway. This is where the "No Software" logo was born. Guerrilla marketing at its finest!',
+    },
+    {
+      type: 'mcq',
+      text: 'At which event was Journey Builder first introduced back in 2013?',
+      options: [
+        'Dreamforce',
+        'TrailblazerDX',
+        'World Tour London',
+        'Connections',
+      ],
+      correctAnswer: 'Connections',
+      funFact: 'ExactTarget showed off Journey Builder at Connections \'13, the same day it unveiled the "Salesforce ExactTarget Marketing Cloud". Connections is still the marketers\' own conference, held in Chicago.',
+    },
+    {
+      type: 'mcq',
+      text: 'Einstein arrived at Dreamforce 2016. Which Einstein feature in MC Engagement predicts the best time to email each subscriber?',
+      options: [
+        'Einstein Send Time Optimization',
+        'Einstein Engagement Frequency',
+        'Einstein Copy Insights',
+        'Einstein Content Selection',
+      ],
+      correctAnswer: 'Einstein Send Time Optimization',
+      funFact: 'Trick question: all four are real Einstein features in MC Engagement! STO looks at each subscriber\'s historical engagement and picks the best send time for that one person.',
+    },
+    {
+      type: 'mcq',
+      text: 'Data 360 has worn a LOT of names over the years. Which one was NEVER one of them?',
+      options: [
+        'Salesforce Genie',
+        'Customer 360 Audiences',
+        'Einstein Data Hub',
+        'Salesforce CDP',
+      ],
+      correctAnswer: 'Einstein Data Hub',
+      funFact: 'The full journey: Customer 360 Audiences → Salesforce CDP → Marketing Cloud CDP → Genie (Dreamforce 2022) → Data Cloud → Data 360 (Dreamforce 2025).',
+    },
+    {
+      type: 'mcq',
+      text: 'Marketing Cloud Personalization started life as which acquisition?',
+      options: [
+        'Datorama',
+        'Krux',
+        'Radian6',
+        'Evergage',
+      ],
+      correctAnswer: 'Evergage',
+      funFact: 'Salesforce bought Evergage in 2020. It became Interaction Studio and was renamed Marketing Cloud Personalization in 2022.',
+    },
+    {
+      type: 'mcq',
+      text: 'Marketing Cloud Next unifies B2B and B2C marketing in one app. What is it built on?',
+      options: [
+        'The ExactTarget platform',
+        'Salesforce Core + Data 360',
+        'The Pardot platform',
+        'MuleSoft',
+      ],
+      correctAnswer: 'Salesforce Core + Data 360',
+      funFact: 'Announced at Connections 2025, Marketing Cloud Next is rebuilt from the ground up on Core and Data 360. No connectors needed between marketing data and CRM data, unlike MC Engagement.',
+    },
+    {
+      type: 'mcq',
+      text: 'At Dreamforce 2025, Marketing Cloud got a brand new name. What was it?',
+      options: [
+        'Agentforce Marketing',
+        'Marketing 360',
+        'Einstein Marketing Cloud',
+        'Data 360 Marketing',
+      ],
+      correctAnswer: 'Agentforce Marketing',
+      funFact: 'At Dreamforce 2025 the "Cloud" names disappeared: Sales Cloud became Agentforce Sales, Service Cloud became Agentforce Service and Marketing Cloud became Agentforce Marketing.',
+    },
+    {
+      type: 'mcq',
+      text: 'At Dreamforce 2026, which Marketing Cloud agent was pitched as your "digital campaign manager"?',
+      options: [
+        'Journey Copilot',
+        'Einstein Campaign Studio',
+        'Campaign Agent',
+        'Marketing Genie',
+      ],
+      correctAnswer: 'Campaign Agent',
+      funFact: 'Campaign Agent works from your goals, guardrails and brand guidelines to create, run and optimize campaigns. It is part of Marketing Cloud Next, not MC Engagement.',
+    },
+    {
+      type: 'mcq',
+      text: 'Plot twist! What is Agentforce Marketing called after Dreamforce 2026?',
+      options: [
+        'Agentforce Marketing 360',
+        'AIforce Marketing',
+        'Koa Marketing',
+        'Marketing Cloud (again!)',
+      ],
+      correctAnswer: 'Marketing Cloud (again!)',
+      funFact: 'The day before Dreamforce 2026 opened, the old names were back: Marketing Cloud, Sales Cloud, Service Cloud. "Agentforce" lives on as the name of the AI platform itself. Salesforce really does love a rename!',
+    },
+  ],
+};

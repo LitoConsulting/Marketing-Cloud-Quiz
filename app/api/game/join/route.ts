@@ -1,52 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { getGameState, getAllPlayers, setPlayer, playerNameExists } from '@/lib/redis';
-import { pusherServer, GAME_CHANNEL } from '@/lib/pusher-server';
+import { addPlayerIfNameFree, getAllPlayers, getGameState } from '@/lib/redis';
+import { broadcast } from '@/lib/pusher-server';
+import { canJoin } from '@/lib/game';
+import { PLAYER_COOKIE } from '@/lib/player-id';
 import { Player } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
   const { name } = await req.json();
 
-  const trimmed = (name ?? '').trim();
+  const trimmed = (typeof name === 'string' ? name : '').trim().replace(/\s+/g, ' ');
   if (!trimmed || trimmed.length > 20) {
     return NextResponse.json({ error: 'Name must be 1-20 characters' }, { status: 400 });
   }
 
   const state = await getGameState();
-  if (state.status !== 'lobby') {
-    return NextResponse.json({ error: 'Game is not accepting players right now' }, { status: 400 });
+  if (!canJoin(state)) {
+    return NextResponse.json({ error: 'The game is not accepting players right now' }, { status: 400 });
   }
 
-  if (await playerNameExists(trimmed)) {
-    return NextResponse.json({ error: 'That name is already taken' }, { status: 400 });
-  }
-
-  const playerId = nanoid(10);
   const player: Player = {
-    id: playerId,
+    id: nanoid(10),
     name: trimmed,
     joinedAt: Date.now(),
     totalScore: 0,
     answers: {},
   };
 
-  await setPlayer(player);
+  if (!(await addPlayerIfNameFree(state.gameId, player))) {
+    return NextResponse.json({ error: 'That name is already taken' }, { status: 400 });
+  }
 
-  const allPlayers = await getAllPlayers();
-  await pusherServer.trigger(GAME_CHANNEL, 'game:player-joined', {
-    players: allPlayers.map((p) => ({ id: p.id, name: p.name })),
-  });
+  const allPlayers = await getAllPlayers(state.gameId);
+  await broadcast('game:player-joined', { playerCount: allPlayers.length });
 
-  const res = NextResponse.json({ ok: true, playerId, playerName: trimmed });
-  res.cookies.set('player_id', playerId, {
+  const res = NextResponse.json({ ok: true, playerId: player.id, playerName: trimmed });
+  res.cookies.set(PLAYER_COOKIE, player.id, {
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 4,
-    path: '/',
-  });
-  res.cookies.set('player_name', trimmed, {
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 4,
+    maxAge: 60 * 60 * 12,
     path: '/',
   });
   return res;

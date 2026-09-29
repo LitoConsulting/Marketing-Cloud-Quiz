@@ -2,11 +2,13 @@ import Pusher from 'pusher-js';
 
 let pusherInstance: Pusher | null = null;
 
-export function getPusherClient(): Pusher {
+/** Returns null when Pusher isn't configured (e.g. local dev); the app then runs on polling alone. */
+export function getPusherClient(): Pusher | null {
+  const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+  const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+  if (!key || !cluster) return null;
   if (!pusherInstance) {
-    pusherInstance = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
+    pusherInstance = new Pusher(key, { cluster });
   }
   return pusherInstance;
 }

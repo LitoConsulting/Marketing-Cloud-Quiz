@@ -10,8 +10,8 @@ const rethinkSans = Rethink_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Marketing Cloud Meetup Quiz",
-  description: "Marketing Cloud Meetup Quiz",
+  title: "Marketing Cloud User Group Quiz",
+  description: "Live quiz for the Marketing Cloud User Group",
 };
 
 export default function RootLayout({
