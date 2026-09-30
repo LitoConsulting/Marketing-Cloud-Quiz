@@ -17,6 +17,8 @@ const hash = (key) => {
 function run([rawCmd, ...args]) {
   const cmd = String(rawCmd).toUpperCase();
   switch (cmd) {
+    case 'PING':
+      return 'PONG';
     case 'GET':
       return strings.get(args[0]) ?? null;
     case 'SET': {

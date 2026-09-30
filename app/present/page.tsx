@@ -8,6 +8,7 @@ import { useCountdown, useGameState } from '@/hooks/useGameState';
 import { OPTION_COLORS, OPTION_HEX, OPTION_ICONS, formatPoints } from '@/components/options';
 import { sounds, unlockAudio } from '@/lib/sound';
 import { GameStateResponse, ScoreEntry } from '@/lib/types';
+import { ConnectionNotice } from '@/components/ConnectionNotice';
 
 const CONFETTI_COLORS = ['#22d3ee', '#a855f7', '#ec4899', '#f59e0b', '#22c55e'];
 
@@ -424,7 +425,7 @@ function useSoundEffects(state: GameStateResponse | null, timeLeft: number, enab
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PresentPage() {
-  const { state, serverNow } = useGameState({ watchPlayers: true });
+  const { state, serverNow, connectionProblem } = useGameState({ watchPlayers: true });
   const [soundOn, setSoundOn] = useState(false);
   const timeLeft = useCountdown(state?.status === 'question' ? state.questionEndsAt : null, serverNow);
   useSoundEffects(state, timeLeft, soundOn);
@@ -436,7 +437,7 @@ export default function PresentPage() {
 
   let view: React.ReactNode = null;
   if (!state) {
-    view = <div className="min-h-screen flex items-center justify-center text-white/20">Connecting...</div>;
+    view = <ConnectionNotice problem={connectionProblem} />;
   } else if (state.status === 'question' && state.question) {
     view = <QuestionScreen state={state} timeLeft={timeLeft} />;
   } else if (state.status === 'revealing' && state.question && state.reveal) {

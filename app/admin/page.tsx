@@ -5,6 +5,7 @@ import { useCountdown, useGameState } from '@/hooks/useGameState';
 import { nextAction, nextActionLabel } from '@/lib/flow';
 import { EVENT_CONFIG } from '@/lib/event-config';
 import { AdminCommand, AdminInfoResponse } from '@/lib/types';
+import { ConnectionNotice } from '@/components/ConnectionNotice';
 
 // ─── Admin Login ────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function AdminPanel() {
-  const { state, serverNow, refetch } = useGameState({ watchPlayers: true });
+  const { state, serverNow, refetch, connectionProblem } = useGameState({ watchPlayers: true });
   const [info, setInfo] = useState<AdminInfoResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -121,13 +122,7 @@ function AdminPanel() {
     setBusy(false);
   }
 
-  if (!state) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white/40">Loading...</div>
-      </div>
-    );
-  }
+  if (!state) return <ConnectionNotice problem={connectionProblem} label="Loading..." />;
 
   const { status, quiz, currentQuestionIndex, players, playerCount } = state;
   const action = nextAction(state, quiz, playerCount);

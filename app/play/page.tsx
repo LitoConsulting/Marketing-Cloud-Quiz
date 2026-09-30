@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCountdown, useGameState, PLAYER_ID_KEY } from '@/hooks/useGameState';
 import { OPTION_COLORS, OPTION_ICONS, formatPoints, ordinal } from '@/components/options';
 import { GameStateResponse, MyStatus } from '@/lib/types';
+import { ConnectionNotice } from '@/components/ConnectionNotice';
 
 // ─── Shared bits ───────────────────────────────────────────────────────────────
 
@@ -225,7 +226,7 @@ function FinishedView({ me }: { me: MyStatus }) {
 
 export default function PlayPage() {
   const router = useRouter();
-  const { state, serverNow, refetch } = useGameState({ asPlayer: true });
+  const { state, serverNow, refetch, connectionProblem } = useGameState({ asPlayer: true });
   // Optimistic answer so the tap feels instant; the server's copy takes over on the next fetch
   const [pending, setPending] = useState<{ key: string; answer: string } | null>(null);
   const [error, setError] = useState<{ key: string; message: string } | null>(null);
@@ -235,7 +236,8 @@ export default function PlayPage() {
     if (state && !state.me) router.replace('/');
   }, [state, router]);
 
-  if (!state?.me) return null;
+  if (!state) return <ConnectionNotice problem={connectionProblem} />;
+  if (!state.me) return null;
   const me = state.me;
   const questionKey = `${state.gameId}:${state.currentQuestionIndex}`;
   const selected = me.currentAnswer ?? (pending?.key === questionKey ? pending.answer : null);

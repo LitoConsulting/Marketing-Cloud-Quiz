@@ -107,6 +107,12 @@ ADMIN_PASSWORD=
 NEXT_PUBLIC_APP_URL=https://marketing-cloud-quiz.vercel.app
 ```
 
+`KV_REST_API_URL` / `KV_REST_API_TOKEN` (the names Vercel's Upstash integration sometimes uses) are accepted as an alternative to the `UPSTASH_*` pair.
+
+### Troubleshooting
+
+Open **`/api/health`** in a browser. It shows which settings are present (never their values) and whether Redis answers, e.g. `"redis": "fetch failed (ENOTFOUND)"` if the database is gone or paused. If the pages say *Can't reach the quiz server*, this is the first place to look.
+
 ---
 
 ## Running locally

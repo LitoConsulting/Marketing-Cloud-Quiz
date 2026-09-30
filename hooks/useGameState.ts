@@ -21,6 +21,7 @@ interface Options {
  */
 export function useGameState({ asPlayer = false, watchPlayers = false }: Options = {}) {
   const [state, setState] = useState<GameStateResponse | null>(null);
+  const [failures, setFailures] = useState(0);
   const clockOffset = useRef(0); // serverTime - deviceTime, phones' clocks are often off
   const requestSeq = useRef(0);
   const appliedSeq = useRef(0);
@@ -39,7 +40,10 @@ export function useGameState({ asPlayer = false, watchPlayers = false }: Options
     const sentAt = Date.now();
     try {
       const res = await fetch('/api/game/state', { headers, cache: 'no-store' });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setFailures((f) => f + 1);
+        return;
+      }
       const data: GameStateResponse = await res.json();
       // Ignore responses that arrive after a newer one
       if (seq < appliedSeq.current) return;
@@ -47,8 +51,10 @@ export function useGameState({ asPlayer = false, watchPlayers = false }: Options
       const receivedAt = Date.now();
       clockOffset.current = data.serverNow - (sentAt + receivedAt) / 2;
       setState(data);
+      setFailures(0);
     } catch {
       // Network blip, the next poll retries
+      setFailures((f) => f + 1);
     }
   }, [asPlayer]);
 
@@ -105,7 +111,9 @@ export function useGameState({ asPlayer = false, watchPlayers = false }: Options
     return () => clearTimeout(t);
   }, [endsAt, fetchState, serverNow]);
 
-  return { state, serverNow, refetch: fetchState };
+  // A couple of failures in a row means something is actually wrong, not just a blip
+  const connectionProblem = failures >= 2;
+  return { state, serverNow, refetch: fetchState, connectionProblem };
 }
 
 /** Seconds left on the active question, corrected for the device's clock offset. */

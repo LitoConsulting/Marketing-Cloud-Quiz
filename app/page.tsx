@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useGameState, PLAYER_ID_KEY } from '@/hooks/useGameState';
+import { ConnectionNotice } from '@/components/ConnectionNotice';
 
 export default function JoinPage() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { state } = useGameState({ asPlayer: true });
+  const { state, connectionProblem } = useGameState({ asPlayer: true });
 
   // Already in this game (e.g. scanned the QR code again): go straight back to it
   useEffect(() => {
@@ -45,6 +46,8 @@ export default function JoinPage() {
       setLoading(false);
     }
   }
+
+  if (!state) return <ConnectionNotice problem={connectionProblem} />;
 
   const status = state?.status;
   const inProgress = status && status !== 'lobby' && status !== 'idle';
@@ -115,7 +118,6 @@ export default function JoinPage() {
         </div>
       )}
 
-      {!state && <div className="text-white/20 text-sm">Connecting...</div>}
     </div>
   );
 }

@@ -3,10 +3,24 @@ import { nanoid } from 'nanoid';
 import { GameState, Player, PlayerAnswer } from './types';
 import { DEFAULT_QUIZ_ID } from './quizzes';
 
+// Vercel's Upstash integration sometimes names these KV_REST_API_*, accept both
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+export const redisEnvSource = process.env.UPSTASH_REDIS_REST_URL
+  ? 'UPSTASH_REDIS_REST_*'
+  : process.env.KV_REST_API_URL
+    ? 'KV_REST_API_*'
+    : null;
+
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  url: REDIS_URL!,
+  token: REDIS_TOKEN!,
 });
+
+export async function pingRedis(): Promise<string> {
+  return redis.ping();
+}
 
 // Players and answers are namespaced per game and expire on their own,
 // so a reset never has to know how many questions the last quiz had.
